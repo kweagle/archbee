@@ -1,0 +1,822 @@
+---
+title: "InsightVM Quick Start Guide"
+excerpt: "Get started with InsightVM"
+---
+
+This quick start guide is designed to get you up and running with the Security Console in as little time as possible.
+
+We’ll guide you through the first 90 days, providing assistance with:
+
+* **Days 1-15:** Installing and activating the console, pairing the console to the platform, pairing the console to a scan engine, creating, and scanning a site. 
+* **Days 16-45:** Creating a set of shared credentials, scheduling a scan, deploying an Insight Agent (optional), creating a report, and customizing a dashboard. 
+* **Days 46-90:** Tagging and grouping assets, scheduling a report, setting up goals/SLAs, and remediating vulnerabilities. 
+* **Days 90+:** Providing additional resources to help you to scale your security program and customize to your needs.  
+
+## Benefits of the Security Console
+  
+In short, the Security Console is an on-premises vulnerability scanner and management system. Its core features allow you to identify risk in your environment, organize your devices, and prioritize remediation.
+
+<details><summary>Scanning</summary>
+
+Run scans to extensively probe your devices for known vulnerabilities, exploits, and policy rules. Create sites to logically group your assets for targeted scans. The Security Console uses Scan Engines to perform the actual scan job, and you can configure/distribute them in a way that is best for your environment. Choose between several built-in Scan Templates (such as **CIS** policy compliance or **Full audit without Web Spider**) to determine which checks are performed for a particular scan. You can also tailor your own Scan Templates to quickly search for the vulnerabilities and policies that matter the most to your organization. Create scan schedules to automate your scan jobs and keep your security team informed on a regular basis.
+
+</details>
+
+<details><summary>Asset organization</summary>
+
+Organize your scanned assets into dynamic or static asset groups according to a variety of traits, such as location, operating system, and owner. Use the Security Console’s tagging system to adjust risk scores and prioritize remediation for your most critical assets. Run filtered asset searches to find scanned assets based on over 40 unique parameters.
+  
+</details>
+
+<details><summary>Reporting</summary>
+
+Generate reports of your scan results so your security teams know what to fix and how. Make use of our built-in report templates or leverage SQL query exports for fully customizable reports. The following example cases highlight some of our most popular report templates:
+
+* Leverage the Top Remediation report to prioritize the remediations that lead to the greatest reduction in risk.
+* If you’re a business that handles credit card transactions, use the PCI report to prepare for an upcoming PCI audit.
+* Generate the Vulnerability Trends report to examine your total detected assets, vulnerabilities, and exploits over custom date ranges.
+  
+</details>
+
+<details><summary>Advanced features</summary>
+
+InsightVM offers far more advanced functionality than we can cover in the scope of this guide, but we can talk about those features later. For now, just keep these core features in mind as they are the tools you’ll be using day to day.
+
+</details>
+
+## Core Components
+  
+Your InsightVM installation has the following components:
+
+|Component|Description|
+| --- | --- |
+|Security Console|This is the component you’ll use to create sites, run scans, generate reports, and much more. The Security Console is accessed via a web-based user interface through any of our supported browsers.|
+|PostgreSQL database|The embedded PostgreSQL database stores all the asset scan data and is used for generating reports.|
+|Scan Engine|Scan Engines are responsible for performing scan jobs on your assets. Note that Scan Engines only store scan data temporarily before sending it back to the Security Console for integration and long-term storage.|
+
+## Requirements
+
+Before you start, ensure you have the following in place. 
+
+### System requirements
+
+!!!include(_shared/Nexpose-InsightVM/vm-system-reqs.md)!!!
+
+### System requirement consideration
+
+<details><summary>Memory</summary>
+
+The integration of scan data from Scan Engines can be memory-intensive depending on how many assets are being scanned at once.
+For this basic deployment, your host machine must have a minimum of 16GB RAM. 
+
+[block:callout]
+{
+  "type": "warning",
+  "title": "Note",
+  "body": " If you intend to deploy on a virtual machine, ensure that you provision the virtual machine with sufficient reserved memory according to the system requirements. Configuring a virtual machine with shared memory may cause negative performance impact."
+}
+[/block]
+
+</details>
+
+<details><summary>Disk space</summary>
+
+Proper disk space allocation for the database is essential. The biggest storage impact on your host machine will come from scans, reports, and database backups. Scan data alone can have varying levels of storage impact depending on your configuration, including scan frequency and whether or not you are authenticating to the target assets.
+
+[block:callout]
+{
+  "type": "warning",
+  "title": "Note",
+  "body": "Authenticated scans require roughly ten times the disk space of unauthenticated scans."
+}
+[/block]
+
+For this basic deployment, your host machine must have a minimum of 100GB of free storage space in order to accommodate your future scan data and reports. At least 1TB of free storage space is recommended for small-scale deployments.
+
+Consider this example deployment situation:
+Scanning 1000 assets on a monthly basis with authentication, generating a single report, and storing the data for one year will take 76GB of storage.
+
+**Don’t underestimate your storage needs**
+
+As you prepare your deployment plan, think about how your network and security needs could change over time. Allocate free storage so you can scan additional assets, increase your scanning frequency, and create database backups. Your Security Console host should be prepared for these events!
+If you find yourself making a decision between two numbers, go for the larger one.
+
+Check our [System Requirements](https://www.rapid7.com/products/insightvm/system-requirements/) page for details. Note the supported operating systems and browsers in particular. Also, you can run the Security Console and Scan Engine on a virtualized instance of any of our supported operating systems as long as they meet the system requirements.
+
+You can deploy using Ubuntu Linux or Windows.
+
+</details>
+
+### Network requirements
+
+<details><summary>Host IP address</summary>
+
+The IP address of your host machine must be statically assigned. You will use this address to access the Security Console’s web interface.
+
+</details>
+
+<details><summary>Ports</summary>
+
+The Security Console communicates through these ports in order to perform the following tasks:
+
+|Port|Task|Direction|Destination|
+|*****|*****|*****|*****|
+|3780 (HTTPS protocol)|Web interface access to the Security Console|Inbound|Security Console|
+|40814|Management of scan activity on Scan Engines and the retrieval of scan data|Outbound|Scan Engine|
+|443|Upload of PGP-encrypted diagnostic information|Outbound|support.rapid7.com|
+||Allows the Security Console to download content and feature updates.</br></br>You must allow the server hosting InsightVM to make outbound connections to updates.rapid7.com on port 443. The Security Console connects to updates.rapid7.com regularly to check for new product versions (every 6 hours) and vulnerability/policy content (every 2 hours). With every connection, the console uploads a JSON file containing license and usage information that helps Rapid7 understand how InsightVM is being used. This upload does not contain any vulnerability assessment data from your assets or any other sensitive information on your environment.</br></br>You can see the contents of this JSON file yourself by running the generate statistics command in the command console.|Outbound|updates.rapid7.com|
+|25, 465 (These ports are optional and feature-related)|If report distribution through an SMTP relay is enabled, the Security Console must be able to communicate through these channels to reach the relay server|Outbound|SMTP relay server|
+
+</details>
+
+<details><summary>Opt into the Insight Platform</summary>
+
+InsightVM’s platform-only features like Dashboards and Remediation Projects require some additional connectivity in order to function properly. See our [communications page](https://insightvm.help.rapid7.com/docs/configure-communications-with-the-insight-platform) for detailed platform connectivity requirements.
+
+</details>
+
+### Programs and services
+
+Several programs and services must be disabled for the Security Console to function. In general, the following services may interfere with network scanning and may also prevent checks from loading or executing:
+
+* Anti-virus / malware detectors: If disabling your anti-virus or malware detection software is not an option, make sure that you configure the software to bypass the Rapid7 installation directory on your Security Console host (the default location for this directory on Windows is `C:\Program Files\Rapid7`). This ensures that InsightVM can operate without interference from this kind of software.
+* Intrusion Detection Systems (IDS)
+* Personal firewalls
+* Executable blocking products
+* SELinux
+
+## Days 1-15: Build your Foundation
+
+During your initial stages of onboarding, you will set up the foundational tools and features of InsightVM. 
+
+Within the first 15 days, you will:
+
+* Install and activate the console
+* Pair the console to the platform
+* Deploy a scan engine
+* Deploy an Insight Agent
+* Create a site
+* Run your first scan 
+
+### Installation Options
+
+<details><summary>Default account creation</summary>
+
+During your installation, you’ll create a default account with Global Administrator privileges. When you configure these credentials, store them in a safe place where you can reference them in the future.
+
+<details><summary>Username and password creation.</summary>
+
+
+Credentials are case-sensitive. As you create credentials, complexity requirements are displayed to ensure that your credentials are secure. Even if your password meets the minimum requirements, it is recommended that you make your password as strong as possible for additional security. A “heat bar” is displayed that gradually changes color from red to green as you make your password stronger. Global Administrators can create and modify accounts after installation. 
+ 
+</details>
+
+<details><summary>Avoid conflicts with other authentication source accounts</summary>
+
+As a general guideline, the username for your default account should be totally unique from any other account name that you may have already configured in other external authentication sources. The Security Console requires that all user accounts have unique usernames. If you intend to configure an external authentication source for console access (such as Active Directory or SAML), do not use one of your external authentication accounts as the default account username.
+
+</details>
+
+[block:callout]
+  {
+    "type": "danger",
+    "title": "Recovery of credentials is not supported.",
+    "body": "After installation is complete, you will be able to log in to the InsightVM application. Recovery of credentials is not supported. If you forget your username or password, you will have to reinstall the program." 
+  }
+  [/block]
+
+</details>
+
+<details><summary>Enable/disable initialization</summary>
+
+Enabled by default, this option will initialize the Security Console after it’s been installed.  Initialization configures the application for use and updates the vulnerability database.  If you enable initialization, your installation time will increase respective to that process.  Initialization time ranges from 10 to 30 minutes.
+
+</details>
+
+<details><summary>FIPS Mode requirements</summary>
+
+  While most organizations do not require this configuration, ensure that you DO NOT initialize the console during your installation if you intend to use FIPS mode. FIPS mode must be configured before the Security Console is started for the first time. 
+  
+  See [Enabling FIPS mode](https://docs.rapid7.com/insightvm/enabling-fips-mode/) for instructions.
+
+</details>
+
+<details><summary> Application initialization and automatic start option </summary>
+
+If you are installing both the Scan Engine and the Security Console, the automatic start option is enabled by default. If you do not want automatic initialization to occur, you must disable it. The benefit to leaving this option enabled is that you can start using the InsightVM application immediately after the installation is complete. This is because it has to initialize before the process prepares the application for use by updating the database of vulnerability checks and performing the initial configuration. Leaving this option enabled increases total installation time by 10 to 30 minutes. Although disabling the option shortens the installation time, it takes longer to start the application because it will have to initialize before you can begin to use it.
+ 
+</details>
+
+<details><summary>Communication direction between console and engine</summary>
+
+Your preferred communication direction between console and engine depends on network configuration: 
+
+* **(Recommended) Engine to Console**. The Scan Engine will actively inform the Security Console that it is available for communication. This configuration allows a configured console that is behind a firewall to allow inbound connections to establish a communication channel.
+* **Console to Engine**. The Scan Engine will listen for communication from the security console. This configuration is most effective when the engine and console are on the same area of the network.
+
+</details>
+
+### Download and install on Linux
+  
+<details><summary>Linux installation requirements</summary>
+
+* The latest [Linux installer](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Linux64.bin).
+* The corresponding [checksum file](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Linux64.bin.sha512sum) for your installer, which helps ensure that installers are not corrupted during download.
+* A product key, which is needed to activate your license upon login.
+* Disable SELinux before you install the application.
+* We recommend installing the tmux or screen package to provide an interactive terminal with the Security Console and Engine.
+* Check the installer file to make sure it was not corrupted during the download.
+* Uninstall any previously installed versions of InsightVM.
+
+Contact your account representative if you are missing any of these items. You should have received an email containing the download links and product key if you purchased InsightVM or registered for an evaluation. We recommend adding InsightVM to your email client allowlist to ensure you are receiving all future emails regarding InsightVM.
+
+</details>
+
+<details><summary>Verify and Disable SELinux</summary>
+
+If you intend to install the Security Console on a Linux host, you can verify whether or not SELinux is disabled, and take action to disable it if it isn't, with the following procedure:
+
+1. Check the status of SELinux by opening its configuration file using a text editor of your choice. Enter the following command in a terminal: `vi /etc/selinux/config`.
+2. Navigate to the line beginning with `SELINUX=`. If the value of this line shows enforcing, you will need to make an edit to disable SELinux.
+3. To do so, modify the value of `SELINUX=` from enforcing to disabled: `SELINUX=disabled`.
+4. When finished, save and close the configuration file.
+5. Run the following command in your terminal to restart the Linux host so the changes can take effect: `shutdown -r now`
+
+</details>
+
+1. Download the latest Linux installer: [Linux installer](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Linux64.bin)
+2. Use the following checksum file to verify the integrity of your installer and ensure that it wasn't corrupted during the download process: [sha512sum for Linux download](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Linux64.bin.sha512sum)
+3. Make sure your installer and checksum file are in the same directory.
+4. Open a terminal and browse to the directory where your installer and checksum file are located.
+5. Run the following command, substituting with the appropriate value: `sha512sum -c <installer_file_name>.sha512sum</installer_file_name>`. 
+Do not close command line window A command line window will appear during installation. You do not need to interact with it, but do not close this window.
+1. If this command returns an OK message, the file is valid. If the check fails, the file was found to be invalid. Download the installer again and retry.
+2. Modify the permissions of the installer to make it executable: `chmod +x <installer_file_name></installer_file_name>`
+3. Run the installer: ./<installer_file_name> -c</installer_file_name>
+4. Follow the instructions prompted by the installer.
+
+<details><summary>Using a GUI?</summary>
+
+If you are using a Graphical User Interface, omit the -c switch at the end of the installer run command. You’ll use a wizard similar to the Windows version instead.
+
+</details>
+
+<details><summary>(Optional) Enable FIPS mode</summary>
+
+If you want to enable FIPS mode, do not select the option to initialize the application after installation. FIPS mode must be enabled before the application runs for the first time.
+
+</details>
+
+<details><summary>Install the Local Scan Engine</summary>
+
+If you are only installing the Scan Engine, you may need to specify the Shared Secret to pair it with a Security Console. Global Administrators can generate a Shared Secret in the Administration section of the Security Console. Select Manage scan engines, click Generate next to Shared Secret, and copy and paste the Shared Secret into the Installation Wizard.
+
+</details>
+
+### Download and install on Windows
+
+<details><summary>Windows installation requirements</summary>
+
+* The [Windows installer](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Windows64.exe).
+* The corresponding checksum file for your installer, which helps ensure that installers are not corrupted during download: [sha512sum for Windows download](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Windows64.exe.sha512sum) 
+* A product key, which is needed to activate your license upon login.
+* You have administrator privileges and are logged onto Windows as an administrator.
+* Your system meets the minimum installation requirements.
+* You have uninstalled any previously installed copies of the application.
+
+Contact your account representative if you are missing any of these items. You should have received an email containing the download links and product key if you purchased InsightVM or registered for an evaluation. We recommend adding InsightVM.
+
+</details>
+
+1. Download the latest installer [Windows installer](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Windows64.exe)
+2. Use the following checksum files to verify the integrity of your installer and ensure that it wasn't corrupted during the download process: [sha512sum for Windows download](https://download2.rapid7.com/download/InsightVM/Rapid7Setup-Windows64.exe.sha512sum)
+3. Make sure your installer and checksum file are in the same directory.
+4. Open a command prompt and browse to the directory where your installer and checksum are located.
+5. Run the following command, substituting with the appropriate value: `certutil -hashfile <installer_file_name> sha512</installer_file_name>`
+6. Run the installer. *Do not close command line window A command line window will appear during the installation, but you will not need to interact with it. Do not close this window.*
+7. Double-click the installer icon. A message displays while the wizard is preparing. Once the wizard is done preparing, you will be sent to the Welcome page to begin installation.
+8. Follow the steps as the wizard guides you. This is where you will decide on the considerations mentioned previously throughout the process.
+
+<details><summary>(Optional) Enable FIPS mode</summary>
+
+If you want to enable FIPS mode, do not select the option to initialize the application after installation. FIPS mode must be enabled before the application runs for the first time.
+
+</details>
+
+<details><summary>Install the Local Scan Engine</summary>
+
+If you are only installing the Scan Engine, you may need to specify the Shared Secret to pair it with a Security Console. Global Administrators can generate a Shared Secret in the Administration section of the Security Console. Select Manage scan engines next under Scans, click Generate next to Shared Secret, and copy and paste the Shared Secret into the Installation Wizard.
+
+</details>
+
+### Log in and activate
+
+[block:callout]
+{
+  "type": "warning",
+  "title": "Initialization progress",
+  "body": "If you just started to initialize after installation, it may still be in progress when you connect to the Security Console.  You must wait for this process to complete before you can log in."
+}
+[/block]
+
+1. Open your supported browser and connect to the following address, substituting `<console_address>` with the FQDN or IP address of the machine where your Security Console is installed: `https://<console_address>:3780`
+2. A login prompt will display.  Enter the credentials that you set up during the Security Console installation and click **LOG ON**.
+3. After you log in successfully, an activation prompt will appear.  Enter your activation key in the provided field to activate.
+
+[block:callout]
+{
+  "type": "info",
+  "title": "Accessing the Security Console from the same machine that it’s installed on?",
+  "body": "In this case, you can quickly access the web interface by connecting to `https://localhost:3780`."
+}
+[/block]
+
+### Get familiar with the console
+
+Familiarize yourself with the Security Console Home page and get an introduction to some of the features you’ll use on a regular basis. This section covers some initial functions, display objects, navigation, and quick links to features, settings, and other resources.
+
+<details><summary>What you'll see and what it does</summary>
+
+!!!include(/_shared/Nexpose-InsightVM/tour-the-home-page.md)!!!
+
+</details>
+
+### Install and pair a distributed scan engine
+
+Distributed Scan Engines are separate from the Security Console and are strategically provisioned and located in a way that makes your scanning environment as efficient as possible. If you intend to maintain a production deployment of the Security Console, distributed Scan Engines are an absolute necessity.
+
+<details><summary>Install a scan engine</summary>
+
+Launch the product installer to get started.  Follow the initial prompts until you reach the component selection and communication direction step.
+
+#### Select Components
+
+After going through the necessary acknowledgements, you’ll be prompted to select which components you want to install.
+
+Select **Scan Engine only**.  This tells the installer that you intend to deploy a distributed Scan Engine.
+
+#### Select a Communication Direction
+
+After selecting your components, you’ll be prompted to select a communication direction.
+
+[block:callout]
+{
+  "type": "info",
+  "title": "Which communication method should I use?",
+  "body": "Deciding how your Scan Engine communicates with the Security Console ultimately depends on the configuration and topology of your network.  Production deployments commonly have both Scan Engine types in place in order to accommodate scanning conditions like asset location and the presence of firewalls.\n\nSee the [Scan Engine Communication Methods](doc:scan-engine-communication-methods) Help page for best practices and use case information."
+}
+[/block]
+
+**If you select the Engine-to-Console method**, you will have the opportunity to configure a reverse pair with your Security Console during the Scan Engine installation.  Although you can skip this pairing step if you want to, Rapid7 recommends that you take advantage of this pairing opportunity since the [post-install reverse pairing procedure](doc:post-installation-engine-to-console-pairing) involves more complicated steps.
+
+To configure a reverse pair during a Scan Engine installation:
+
+1. When prompted by the install wizard, enter the IP address of your Security Console.
+2. Provide the installer with the Security Console shared secret.
+   * You can generate a shared secret in the Security Console by navigating to the **Administration** tab **>** "Scans" section **> Manage scan engines ** next to "Engines" **>** "Generate Scan Engine Shared Secret" section **> Generate**.
+
+[block:callout]
+{
+  "type": "info",
+  "title": "TIP",
+  "body": "Multiple Scan Engines can use the same console-generated shared secret for each of their reverse pairing procedures.  However, shared secrets are only valid for 60 minutes.  If your shared secret expires, you must generate a new one to complete any further reverse pairing procedures."
+}
+[/block]
+
+1. Test your connection to ensure that your Security Console and Scan Engine can communicate properly.
+2. Continue with the rest of the Scan Engine installation.
+3. After your Scan Engine finishes installing, proceed directly to the [Refresh Your New Scan Engine](#refresh-your-new-scan-engine) section of this guide.
+
+**If you select the Console-to-Engine method**, you’ll need to configure a standard pair with your Security Console after the Scan Engine installation completes.  Continue with the rest of the installation at this time.  After your Scan Engine finishes installing, proceed to the [Pair Your Scan Engine to the Security Console](#pair-your-scan-engine-to-the-security-console) section of this guide.
+
+</details>
+
+<details><summary>Pair the scan engine</summary>
+
+[block:callout]
+{
+  "type": "warning",
+  "title": "NOTE",
+  "body": "Make sure your new Scan Engine is running and reachable (see [Firewall requirements](https://docs.rapid7.com/insightvm/insightvm-quick-start-guide/#firewall-requirements)) before proceeding with a post-installation pairing procedure. You must also have admin-level access to your Scan Engine host to complete these pairing procedures."
+}
+[/block]
+
+All new Scan Engines must be paired to the Security Console in order to be usable for scanning.  These engine pairing procedures differ based on the method of communication you want to implement.
+
+Consult one of the following pairing procedures for your communication method of choice:
+
+* [Standard Pair (Console-to-Engine)](#standard-pair-console-to-engine)
+* [Reverse Pair (Engine-to-Console)](#reverse-pair-engine-to-console)
+
+#### Standard Pair (Console-to-Engine)
+
+In order to configure a console-to-engine pairing, the Security Console must be made aware that a new Scan Engine is available for use and must be provided with instructions on how to reach it.  Consequently, the first step of all standard pairing procedures is to add your new Scan Engine to the Security Console.
+
+To add a Scan Engine through the **Administration** tab:
+
+1. Browse to and click on the **Administration** tab in your left navigation menu.
+2. In the “Scans” section, click **Mange scan engins**.
+3. Click **New Engine** under Scan Engines.
+4. On the **General** tab, name your Scan Engine.
+5. Enter the IP address of your Scan Engine in the “Address” field.
+6. Click **Save** when finished.
+
+Properly added Scan Engines generate a `consoles.xml` file on the Scan Engine host.  You will modify this file in the next step.
+
+#### Modify consoles.xml
+
+The `consoles.xml` file generated on your Scan Engine host in the previous step contains an entry for the Security Console that added the Scan Engine.  You must enable the console to complete the pairing.
+
+To modify the `consoles.xml` file for a Linux or Windows host:
+
+1. Browse to the `consoles.xml` file in your Scan Engine directory.  By default, this file is located in the following places according to the operating system of your Scan Engine host:
+   * **Linux** - `/opt/rapid7/nexpose/nse/conf/consoles.xml`
+   * **Windows** - `Files\Rapid7\NeXpose\nse\conf\consoles.xml`
+2. Open `consoles.xml` with a text editor of your choice.  Navigate to the `<consoles>` element.  The Security Console that added the Scan Engine appears as a `<console>` element with several attributes.
+   * You can identify the correct Security Console by checking that the `lastAddress` attribute matches the IP address of the Security Console you want to pair with.
+3. Change the value for the `enabled` attribute from `0` to `1`.
+4. Save and close the `consoles.xml` file.
+5. Restart the Scan Engine host so your changes can take effect.
+
+#### Reverse Pair (Engine-to-Console)
+
+If you took advantage of the reverse pairing configuration opportunity during your Scan Engine installation, then you’ve already completed this step!  Proceed directly to the [Refresh Your New Scan Engine](#refresh-your-new-scan-engine) section of this guide to verify that your Scan Engine is ready for use.
+
+However, if you installed a Scan Engine with the **Engine-to-Console** method selected without completing the reverse pairing step, you must complete the pairing with a separate procedure.  See the [Post-Installation Engine-to-Console Pairing](doc:post-installation-engine-to-console-pairing) page for instructions on how to do this.
+
+</details>
+
+#### Refresh the scan engine
+
+After completing a standard or reverse pair for your Scan Engine, you must refresh its status to verify that the Security Console can communicate with it properly.
+
+<details><summary>Refresh the engine</summary>
+
+1. Browse to and click on the **Administration** tab in your left navigation menu.
+2. In the “Scans" section, click **Manage scan engines**.
+3. In the “Scan Engines” section, click **Refresh Displayed Engines**.  This ensures that your Scan Engine table is up-to-date.
+4. Locate the distributed Scan Engine that you paired to the Security Console.  
+5. Click the icon in the “Refresh” column to complete the verification process.
+
+</details>
+
+<details><summary>Scan engine statuses</summary>
+
+If you have properly configured and paired your Scan Engine, it now displays up-to-date version and communication status information.  The “Communication Status” column itself indicates both the current communication method by arrow and connection state by color.  Arrows pointing to “Engine” indicate a standard pairing, while arrows pointing to “Console” indicate reverse pairing.  Additionally, arrow icons can have the following color codes:
+
+* **Green** - Scan Engine is active
+* **Orange** - Scan Engine status is unknown
+  * An “unknown” status indicates that the Security Console and the Scan Engine could not communicate even though no error was recorded.  This is often the result of a significant lapse between pings.  Refresh the Scan Engine status to attempt communication again.
+* **Red** - There are three possibilities associated with this color code:
+  * **Pending Authorization** - This state indicates that the Security Console has not yet been enabled on the Scan Engine.  Consoles must be enabled on the Scan Engine [during the pairing procedure](#pair-your-scan-engine-to-the-security-console).
+  * **Incompatible** - This state indicates that the Security Console and Scan Engine are on different versions.  Consoles and engines must be on the same version in order to communicate properly.
+  * **Down** - This state indicates that the Scan Engine is offline.
+
+</details>
+
+### (Optional) Deploy an agent
+
+You can also deploy an Insight Agent to centralize and monitor data on the Insight Platform. For more information on this see, [Using the Insight Agent with InsightVM](doc:using-the-insight-agent-with-insightvm) or our [Insight Agent documentation](https://docs.rapid7.com/insight-agent/overview/).
+
+### Create and scan your first site
+
+<details><summary>Create your first site</summary>
+
+1. On the **Home** page of the Security Console, click **Create** and select **Site**.
+2. On the **Site Configuration** page, set your configuration options:
+    * **Info & Security:** Name and describe your site.
+    * **Assets:** Enter the name, IP address, or IP range to specify which assets to include in the site.
+3. To configure your authentication and set credentials: 
+    a. Click **Authentication>Add credentials>General**. Add a name and description. This name helps you easily identify the credentials from the **Manage Authentication** tab later.
+    b. On the **Account** tab, select the authentication service you want to use. Enter the username and password.
+    c. On the **Add Credentials** tab, click the **Test Credentials** dropdown. Specify the IP address or FQDN of the asset you want to test. Specify the port number for the authentication service.
+    d. Click **Test Credentials**.
+
+    [block:callout]
+    {
+      "type": "info",
+      "title": "Understanding credential test results",
+       "body": "Successful credential tests show a green confirmation message. </br>Failed tests appear in red and may show the following text: 
+
+       * **Invalid credentials** - Your username and/or password were incorrect. 
+       * **Connection refused** - You specified the wrong port number, the port is not open on the host, or a firewall actively blocked the connection. 
+       * **No route to host** - The IP address or FQDN specified was not found on the network. This means that you entered the wrong address, the host network cannot be reached from the network subnet hosting the console, or the host is not connected."
+    }
+    [/block]
+
+     e. Click **Create** to save the credentials.
+
+</details>
+
+<details><summary>Complete a full scan of your site</summary>
+
+For your first scan, you complete a full scan of your site for all risks. This gives you a baseline understanding of what risks exist. You can run and schedule more specific scans later, but for the purpose of onboarding, you complete a full scan first. 
+
+1. On the **Select Scan Template** tab, select **Full Audit without Web Spider**.
+2. On the **Select Engine** tab, select the scan engine.
+3. Click **Save & Scan**.
+
+</details>
+
+<details><summary>View scan progress</summary>
+
+After initiating your first scan, the Security Console displays the site details page. The **Scan Progress** section at the top gives you a live look at the progress of the ongoing scan as it runs.
+Upon completion, the **Scan Status** column displays **Completed successfully**.
+
+If your scan does not complete successfully, you can review statuses to understand why and troubleshoot why this issue is occuring. See [Understanding different scan engine statuses and states](https://docs.rapid7.com/insightvm/understanding-different-scan-engine-statuses-and-states/) for more information. 
+
+</details>
+
+<details><summary>View scan results</summary>
+
+On the same site details page, browse to the **Completed Assets** section and click the address link for your asset. The scanned asset detail view contains information about your asset, including the type of operating system it's running, whether it's a physical or virtual machine, and its calculated risk score. Risk scores help you determine which vulnerabilities pose the most risk to your business so you can prioritize remediation accordingly.
+
+You can also examine each individual vulnerability that was detected on the asset by reviewing the **Vulnerabilities** table.
+
+</details>
+
+## Days 16-45: Identify Your Threat Landscape
+
+Now that you have done the fundamental steps for setup it’s a good opportunity to set up some of the core features of InsightVM. You will learn how to set up and use features that will help you to share your findings with your team and stakeholders. 
+
+Within days 16-45, you will have:
+
+* Created a set of shared credentials
+* Scheduled a scan, so you can regularly check your assets
+* Created a report, so you can share findings with key stakeholders
+* Customized a dashboard
+
+### Generate Shared Credentials
+
+Scanning with credentials allows you to gather information about your network and assets that you could not otherwise access. You can inspect assets for a wider range of vulnerabilities. Using shared credentials can save time if you need to perform authenticated scans on a high number of assets in multiple sites that require the same credentials.
+
+<details><summary>Naming and describing the new set of shared credentials</summary>
+
+1. Click the **Administration** tab.
+2. On the **Administration** page, click **Manage shared credentials for scans**.
+3. Click **New**.
+4. Enter a name for the new set of credentials.
+5. Enter a description for the new set of credentials.
+6. Continue with configuring the account, as described in the next section.
+
+</details>
+
+<details><summary>Configuring the account for authentication</summary>
+
+Configuring the account involves selecting an authentication method or service and providing all settings that are required for authentication, such as a username and password.
+
+If you do not know what authentication service to select or what credentials to use for that service, consult your network administrator.
+
+1. Go to the **Account** page of the **Shared Scan Credentials Configuration** panel.
+2. Select an authentication service or method from the drop-down list.
+3. Enter all requested information in the appropriate text fields.
+4. If you want to test the credentials or restrict them see the following two sections. Otherwise, click **Save**.
+
+</details>
+
+<details><summary>Testing shared scan credentials</summary>
+
+You can verify that a target asset will authenticate a Scan Engine with the credentials you’ve entered. It is a quick method to ensure that the credentials are correct before you run the scan.
+
+For shared scan credentials, a successful authentication test on a single asset does not guarantee successful authentication on all sites that use the credentials.
+
+1. Go to the **Account** page of the **Credentials Configuration** panel.
+2. Expand the **Test Credentials** section.
+3. Select the **Scan Engine** with which you will perform the test.
+4. Enter the name or IP address of the authenticating asset.
+5. To test authentication on a single port, enter a port number.
+6. Click **Test credentials**.
+
+Note the result of the test. If it was not successful, review and change your entries as necessary, and test them again.
+
+1. Upon seeing a successful test result, configure any other settings as desired.
+2. If you want to restrict the credentials to a specific asset or port, see the following section. Otherwise, click **Save**.
+
+For more information on managing shared credentials, see [our documentation](https://docs.rapid7.com/insightvm/managing-shared-scan-credentials).
+
+You can also deploy our Scan Assistant instead of setting up shared credentials. For more information on Scan Assistant, see [our documentation](https://docs.rapid7.com/insightvm/scan-assistant-combined).
+
+</details>
+
+### Schedule a scan
+
+Depending on your security policies and routines, you may schedule certain scans to run on a monthly basis, such as patch verification checks, or on an annual basis, such as certain compliance checks. 
+
+It's a good practice to run discovery scans and vulnerability checks more often—perhaps every week or two weeks, or even several times a week, depending on the importance or risk level of these assets. It is also recommended to schedule scans to align with patching cycles. You can also schedule scans to avoid periods of high site traffic.
+
+<details><summary>Scheduling a scan</summary>
+
+During days 1-15 you would have initiated a scan. You can schedule scans to occur at times that best suit you and your organization. You can schedule them to occur during times of lower site traffic, etc. 
+
+1. Click the site’s **Edit** icon in the **Sites** table on the **Home** page.
+2. Click the **Schedules** tab of the **Site Configuration**.
+3. Click **Create Schedule**. Complete the form as follows:
+
+    1.  Name the schedule.
+    2.  Select the **Enable** check box.
+    3.  Select the date and time the schedule should start.
+    4.  Select a template for the scheduled scan. See [Scheduling scans to run with different templates](https://docs.rapid7.com/insightvm/scheduling-scans#scheduling-scans-to-run-with-different-templates) for more information.
+    5.  Select a Scan Engine for the scheduled scan. This allows you to create your schedules in a way that lets you take advantage of what you know about the availability and performance of your Scan Engines at particular times.
+    6.  If you want to set a maximum duration, enter a numeral for the number of minutes the scan can run. When the scan reaches the duration limit, it will pause. If you don't enter a value, the scan will simply run until it completes.
+    7.  Select an option for what you want the scan to do after it reaches the duration limit. If you select the option to continue where the scan left off, the paused scan will continue at the next scheduled start time. If you select the option to restart the paused scan from the beginning, the paused scan will stop and then start from the beginning at the next scheduled start time.
+    8.  To make it a recurring scan, select an option from the **Frequency** dropdown. Select **Other…** for additional customization options.
+
+4. Click **Save**. The newly scheduled scan appears in the **Scan Schedules** table, which you can access by clicking **Manage Schedules**.
+
+</details>
+
+### Generate Your First Report
+
+You can share the results of any completed scans by generating reports. 
+For this example, you create a Top Remediations with Details report scoped to the scan results of the site you created previously. 
+
+The Security Console displays the report configuration screen, which is composed of three clickable tabs for creating new reports, viewing saved reports, and managing existing report templates.
+
+1. On the **Reports** tab in the left navigation menu, click the **Create a report** tab.
+2. Give your report a name. Report names often indicate the asset scope and the report template in use so that the report is easily recognizable.
+3. (Optional) Adjust the time zone that will be stamped on the report by making a selection in the provided dropdown list. By default, the Security Console chooses the time zone according to what is detected on its host machine.
+4. On the **Template > Document** tab, browse to and select the **Top Remediations with Details** report template.
+5. In **File format**, make sure **PDF** is selected. RTF and HTML formats are also available for this report template, but Rapid7 recommends the PDF format for readability and portability.
+6. In **Scope**, click **Select Scan**. A site selection window displays.
+7. Find the site you created previously and click its corresponding radio button to select it.
+8. Click **Select Scan**.
+9. On the **Select Scan** window, select the most recent scan for this site and click **OK**.
+10. In **Frequency**, ensure **Do not run a recurring report** is selected. Recurring reports are a great idea for production scanning environments. That being said, you only need a single report for this exercise.
+11. Review your report configuration and verify that everything is correct.
+12. Click **Save & Run the Report**.
+
+</details>
+
+### Customized dashboards
+
+Dashboards are specialized, overall views of your network in a customizable, drag-and-drop interface. Choose from several pre-built Rapid7 options or start fresh with your own.
+
+<details><summary>Start from a template</summary>
+
+1. Click the **Dashboard** tab in your navigation menu. Click **Default dashboard** and from the dropdown click **see More in the R7 Library**.
+2. Click **Add** next to your desired template.
+3. Name your dashboard.
+4. If desired, adjust the description.
+5. Click **OK**.
+
+</details>
+
+<details><summary>Start from scratch</summary>
+
+1. Click the **Dashboard** tab in your navigation menu. Click **Default dashboard** and from the dropdown click **Create a New Dashboard**.
+2. Name your dashboard.
+3. If desired, add a description.
+4. Click **OK**.
+
+</details>
+
+<details><summary>Add cards</summary>
+
+1. Click the **+ Add Card** button in the upper-right corner of your dashboard.
+2. Browse the card list by selecting a category, or refine by searching for keywords.
+3. Check the box next to any and all desired cards that you want to add.
+4. Click **Add**.
+
+</details>
+   
+<details><summary>Remove cards</summary>
+
+1. Click the trash icon on the card you want to remove.
+2. Click **Delete** to confirm.
+
+</details>
+
+<details><summary>Organize cards</summary>
+
+All dashboard cards are draggable. Click and hold the title bar of any card to drag it to another position on your dashboard.
+
+For more information on dashboards, see [Dashboards](https://docs.rapid7.com/insightvm/dashboards/). 
+
+</details>
+
+## Days 46-90: Respond to Your Findings
+
+During this stage, you will set up tools that will help you to use InsightVM more efficiently and organize your assets in a way that suits you.
+
+During days 46-90 days, you will:
+
+* Organize your assets by tagging and grouping them
+* Schedule a report to run
+* Set up goals and SLAs
+* Learn more about the remediation of vulnerabilities
+
+### Tag and group assets
+
+You can tag an asset individually on the details page for that asset. You also can tag a site or an asset group, which would apply the tag to all member assets. The tagging workflow is identical, regardless of where you tag an asset:
+
+<details><summary>Add tags</summary>
+
+1. From the **Create** dropdown, select **Tags**. In **Asset Tags** click **Add tags**. 
+2. Select a tag type.
+3. If you select **Custom Tag**, **Location**, or **Owner**, type a new tag name to create a new tag. To add multiple names, type one name, press ENTER, type the next, press ENTER, and repeat as often as desired. If you are creating a new custom tag, select a color in which the tag name will appear. All built-in tags have preset colors.
+
+![Asset Tags](/insightvm/images/asset_tags.png "Asset Tags")
+
+4. If you select **Criticality**, select a criticality level from the list.
+5. Click **Add**.
+
+</details>
+
+<details><summary>Configure asset groups</summary>
+
+[block:callout]
+{
+  "type": "warning",
+  "title": "Note",
+  "body": "You can only create an asset group after running an initial scan of assets that you wish to include in the group."
+}
+[/block]
+
+1. Go to the **Assets > Asset Groups** page. 
+2. At the bottom of the page, click **New Static Asset Group** to create a new static asset group. 
+
+![Asset Group](/insightvm/images/asset_group.png "Asset Group")
+
+3. The console displays the **Filtered Asset Search** page. Filter the assets you require using the criteria provided in the dropdown. Click **Search**. 
+4. Click **Create Asset Group**. 
+5. Ensure the **Static** radio button is selected. Type a group name and description in the appropriate fields.
+6. If you want to, add business context tags to the group. Any tag you add to a group will apply to all of the member assets. 
+7. Click **Save**. 
+
+</details>
+
+### Schedule a report
+
+To schedule this export to automatically occur periodically, you need to use the Report Creation Wizard in Query Builder, which you used to create a report during days 16-45. Recurring reports are a great idea for production scanning environments.
+
+<details><summary>Create a scheduled report</summary>
+
+1. On the **Reports** tab in the left navigation menu, click the **Create** a report tab.
+2. Give your report a name. 
+3. (Optional) Adjust the time zone that will be stamped on the report by making a selection in the provided dropdown list. By default, the Security Console chooses the time zone according to what is detected on its host machine.
+4. In **Template**, select the appropriate template. 
+5. In **File format**, select the required format. 
+6. In **Scope**, click **Select Scan**. A site selection window displays.
+7. Select the required site. 
+8. Click **Select Scan**.
+9. On the **Select Scan** window, select the most recent scan for this site and click **OK**.
+10. In **Frequency**, select **Run a recurring report on a schedule** is selected. Select a **Start date and time**. Select a pattern of recurrence, specifying how many times it should run and whether it should be on a hourly, weekly, monthly basis. 
+11. Review your report configuration and verify that everything is correct.
+12. Click **Save**.
+
+</details>
+
+### Set goals and SLAs
+
+Goals and SLAs is an InsightVM feature that helps you reduce overall risk and improve the security of your environment. Track your remediation efforts or asset configuration by setting goals and defining metrics to measure against those goals. To view your progress, you can add goal cards to dashboards.
+
+<details><summary>Create a goal from the Goals and SLAs page</summary>
+
+1. In the left menu, click the **Goals and SLAs** icon.
+2. When the **Goals and SLAs** page appears, click **+ New Goal** in the upper right corner to launch the wizard.
+
+</details>
+
+<details><summary>Create a goal from the dashboard</summary>
+
+1. In the left menu, click the **Dashboard** icon.
+2. Click **+ Add Card** in the upper right corner to launch the wizard to add a goal.
+3. In the left column, click **Goals**.
+4. Select the type of goal you want to create.
+5. Click **Add**. This action will add a goal card on your dashboard.
+6. On the goal card, click the dropdown menu and select the goal to display it.
+   
+You can also create a goal from scratch. See [Create a goal from scratch](https://docs.rapid7.com/insightvm/create-goals-slas#create-a-goal-from-scratch), for more information. 
+
+</details>
+
+### Remediate Vulnerabilities
+
+A remediation project is a group of solutions for vulnerabilities that need to be remediated on a specific set of assets within a certain time frame. 
+
+Remediation projects make it simpler to prioritize, drive, and track remediation progress by showing you the true state of the remediation. Project metrics automatically update as known vulnerabilities are no longer found, so that you can fully visualize the achievements of your remediation teams.
+
+With remediation projects, you can:
+
+* Communicate relevant context and prioritizations to the right people
+* Track the progress of remediation projects
+* Identify the remediation work that teams are working on at a glance
+* Automatically identify, assign, and monitor remediation progress
+  
+For more information see:
+
+* [Remediation Workflow](https://docs.rapid7.com/insightvm/remediation-workflow/): This topic contains detailed guidance, a workflow diagram, additional options for using and sharing remediation projects. 
+* [Working with Vulnerabilities](https://docs.rapid7.com/insightvm/working-with-vulnerabilities/): Learn how to analyze vulnerabilities and better understand what should be prioritized for remediation. 
+* [Top 25 Vulnerabilities](https://www.rapid7.com/blog/post/2019/01/09/did-you-remediate-that-take-control-of-risk-by-knowing-your-top-25-vulnerabilities/): Read more on our blog about this report, which identifies your organization’s top 25 vulnerabilities and the assets impacted.  
+* [Collaborating across teams](https://www.rapid7.com/blog/post/2020/01/21/better-together-how-to-collaborate-to-drive-vulnerability-remediation-among-security-it-and-devops-teams/): This blog post provides additional information on how InsightVM can help your team collaborate on vulnerability remediation. 
+
+## Days 90+ 
+
+At this stage, you can build on and customize the key elements of the product we’ve introduced in days 1-90 to scale your security program. For additional support, you can explore our products further, using the following resources.
+
+|Topic|Resources|
+|****|****|
+|Learn More|The [Rapid7 Academy](https://academy.rapid7.com/) provides training content, webcasts, workshops, certification courses, and other content created by our expert instructors. </br>We share our research on security issues and trends [here](https://www.rapid7.com/research/) </br>You can refer to our [help documentation](https://docs.rapid7.com/)|
+|Stay Up-To-Date|You can stay up to date with what’s going on at Rapid7 by subscribing to our [mailing lists](https://information.rapid7.com/communication-preferences.html). We also regularly post update notifications in-product.</br>We also have RSS feeds for [our blog](https://www.rapid7.com/blog/) and [release notes](https://docs.rapid7.com/release-notes/insightvm/).</br>You can also sign up for product status updates, such as events like degradations, outages, etc. on [status.rapid7.com](https://status.rapid7.com/)|
+|Get Involved|[Rapid7 Discuss](https://discuss.rapid7.com/) is an active forum where you can find out more about and discuss Rapid7 products.</br>[Rapid7 Voice](https://www.rapid7.com/about/rapid7-voice/) is a network of Rapid7 customers, with whom you can share and learn.|
+|Contact Support|If you need assistance from our support team, you can contact them [here](https://www.rapid7.com/for-customers/).|
