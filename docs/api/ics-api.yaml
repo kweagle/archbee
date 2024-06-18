@@ -1,0 +1,1130 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "InsightCloudSec API (v4)",
+    "version": "Last update: v. 23.10",
+    "description": "<p>Welcome to the reference documentation for the public APIs (v4) available for InsightCloudSec.</p>\n\t\t<p>Here are a few resources to help start using our APIs:</p>\n\t\t<ul>\n\t\t<li><a href='https://docs.rapid7.com/insightcloudsec/api-documentation'>Learn about basic InsightCloudSec API concepts and capabilities</a></li>\n\t\t<li><a href='https://docs.rapid7.com/insightcloudsec/api/v2/#operation/create-api-key'>Get an InsightCloudSec API key to set up authentication</a></li>\n\t\t<li><a href='https://docs.rapid7.com/insightcloudsec/welcome-to-insightcloudsec'>Learn more about InsightCloudSec</a></li>\n\t\t</ul>\n\t\t<p>After you’ve got the basics down, you can effectively interact with the sample requests and responses found in this file.</p>",
+    "contact": {
+      "name": "Rapid7 Support",
+      "url": "https://support.rapid7.com",
+      "email": "support@rapid7.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{insightcloudsecUrl}/v4",
+      "variables": {
+        "insightcloudsecUrl": {
+          "default": "my.insightcloudsec.com"
+        }
+      }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "Api-Key": {
+        "type": "apiKey",
+        "description": "Requests to this API require an [API key](https://docs.rapid7.com/insightcloudsec/api-documentation#authentication) passed through the `Api-Key` header. For more information on security and access within InsightCloudSec, see [Users, Groups and Roles](https://docs.rapid7.com/insightcloudsec/user-roles).",
+        "name": "Api-Key",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "SarifLog": {
+        "type": "object",
+        "properties": {
+          "$schema": {
+            "type": "string",
+            "description": "The absolute URI of a JSON schema document for SARIF"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the SARIF standard used"
+          },
+          "runs": {
+            "type": "array",
+            "description": "A list of run objects (SARIF spec v2.1.0, 3.13.4). Each run contains metadata about a single run of an external IaC analysis tool and the results of that run",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "$schema",
+          "runs",
+          "version"
+        ]
+      },
+      "GetScanResponse": {
+        "type": "object",
+        "properties": {
+          "drivers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scan_target": {
+            "type": "string"
+          },
+          "config_id": {
+            "type": "integer",
+            "default": null
+          },
+          "id": {
+            "type": "integer"
+          },
+          "complete_time": {
+            "type": "string",
+            "format": "date-time",
+            "default": null
+          },
+          "create_time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "create_time",
+          "drivers",
+          "id",
+          "scan_target"
+        ]
+      },
+      "ListScanResponse": {
+        "type": "object",
+        "properties": {
+          "page_size": {
+            "type": "integer"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "total_pages": {
+            "type": "integer"
+          },
+          "total_count": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ids",
+          "page",
+          "page_size",
+          "total_count",
+          "total_pages"
+        ]
+      },
+    }
+  },
+  "security": [
+    {
+      "Api-Key": []
+    }
+  ],
+  "paths": {
+    "/iac/scans/{scan_id}/report": {
+      "get": {
+        "operationId": "v4_iac_scans_retrieve_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scan_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Returns the SARIF report associated with the specified scan",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SarifLog"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/iac/scans": {
+      "get": {
+        "operationId": "v4_iac_scans_list_scans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "create_time",
+              "enum": [
+                "id",
+                "create_time"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_dir",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "summary": "List IaC Scans",
+        "description": "retrieve a list of IaC scan ids",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListScanResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/iac/scans/{scan_id}": {
+      "get": {
+        "operationId": "v4_iac_scans_get_scan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scan_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Get IaC Scan",
+        "description": "returns a single IaC scan given a scan_id",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetScanResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/configs/aws/accesskeys/{id}": {
+      "delete": {
+        "summary": "Delete AWS Access Key",
+        "description": "Deletes an existing AWS Access Key.",
+        "operationId": "delete-aws-access-key",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Access Key Configuration ID.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/configs/aws/accesskeys": {
+      "post": {
+        "summary": "Create AWS Access Key",
+        "description": "Creates a new AWS IAM Access Key.",
+        "operationId": "create-aws-access-key",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "region_name",
+                  "aws_access_key_id",
+                  "aws_secret_access_key"
+                ],
+                "properties": {
+                  "region_name": {
+                    "type": "string",
+                    "description": "AWS region name. This represents the AWS partition where the Access Key was created and is used as the default region for STS operations."
+                  },
+                  "aws_access_key_id": {
+                    "type": "string",
+                    "description": "The ID for the AWS Access Key. Review the [AWS Access Key documentation](https://docs.aws.amazon.com/IAM/latest/APIReference/welcome.html) for more information."
+                  },
+                  "aws_secret_access_key": {
+                    "type": "string",
+                    "description": "The value for the AWS Secret Access Key. Review the [AWS Access Key documentation](https://docs.aws.amazon.com/IAM/latest/APIReference/welcome.html) for more information."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "201",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n\t\"arn\": \"arn:partition:service:region:account-id:resource-id\",\n  \"account_id\": \"1234-5678-9012\",\n  \"expiration\": \"2022-10-31T12:00:00Z\",\n  \"is_session\": false,\n  \"id\": 1234567890,\n  \"region_name\": \"us-east-1\",\n  \"organization_id\": 1234567890,\n  \"unique_id\": \"1234-abcd-5678-efgh\",\n  \"aws_access_key_id\": \"1234abc5-123a-12ab-123a-12a34bcd5678\"\n}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "arn": {
+                      "type": "string",
+                      "example": "arn:partition:service:region:account-id:resource-id"
+                    },
+                    "account_id": {
+                      "type": "string",
+                      "example": "1234-5678-9012"
+                    },
+                    "expiration": {
+                      "type": "string",
+                      "example": "2022-10-31T12:00:00Z"
+                    },
+                    "is_session": {
+                      "type": "boolean",
+                      "example": false,
+                      "default": true
+                    },
+                    "id": {
+                      "type": "integer",
+                      "example": 1234567890,
+                      "default": 0
+                    },
+                    "region_name": {
+                      "type": "string",
+                      "example": "us-east-1"
+                    },
+                    "organization_id": {
+                      "type": "integer",
+                      "example": 1234567890,
+                      "default": 0
+                    },
+                    "unique_id": {
+                      "type": "string",
+                      "example": "1234-abcd-5678-efgh"
+                    },
+                    "aws_access_key_id": {
+                      "type": "string",
+                      "example": "1234abc5-123a-12ab-123a-12a34bcd5678"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "get": {
+        "summary": "List AWS Access Keys",
+        "description": "Lists existing AWS Access Keys.",
+        "operationId": "list-aws-access-keys",
+        "parameters": [
+          {
+            "name": "include_session",
+            "in": "query",
+            "description": "Set to `true` to return long term *and* temporary STS AssumeRole session access keys.",
+            "schema": {
+              "type": "string",
+              "default": "false"
+            }
+          },
+          {
+            "name": "source_accounts",
+            "in": "query",
+            "description": "Comma-delimited list of AWS account IDs.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number for the list of results to return. Must be positive.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "The size of the page for the list of results. Must be positive.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n\t\"total_count\": 1,\n  \"page_size\": 1,\n  \"data\": [\n    {\n      \"arn\": \"arn:partition:service:region:account-id:resource-id\",\n      \"account_id\": \"1234-5678-9012\",\n      \"expiration\": \"2022-10-31T12:00:00Z\",\n      \"is_session\": false,\n      \"id\": 1234567890,\n      \"region_name\": \"us-east-1\",\n      \"organization_id\": 1234567890,\n      \"unique_id\": \"1234-abcd-5678-efgh\",\n      \"aws_access_key_id\": \"1234abc5-123a-12ab-123a-12a34bcd5678\"\n\t\t}\n  ],\n  \"total_pages\": 1,\n  \"page\": 1\n}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "arn": {
+                            "type": "string",
+                            "example": "arn:partition:service:region:account-id:resource-id"
+                          },
+                          "account_id": {
+                            "type": "string",
+                            "example": "1234-5678-9012"
+                          },
+                          "expiration": {
+                            "type": "string",
+                            "example": "2022-10-31T12:00:00Z"
+                          },
+                          "is_session": {
+                            "type": "boolean",
+                            "example": false,
+                            "default": true
+                          },
+                          "id": {
+                            "type": "integer",
+                            "example": 1234567890,
+                            "default": 0
+                          },
+                          "region_name": {
+                            "type": "string",
+                            "example": "us-east-1"
+                          },
+                          "organization_id": {
+                            "type": "integer",
+                            "example": 1234567890,
+                            "default": 0
+                          },
+                          "unique_id": {
+                            "type": "string",
+                            "example": "1234-abcd-5678-efgh"
+                          },
+                          "aws_access_key_id": {
+                            "type": "string",
+                            "example": "1234abc5-123a-12ab-123a-12a34bcd5678"
+                          }
+                        }
+                      }
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/configs/aws/roles": {
+      "get": {
+        "summary": "List AWS Role Configurations",
+        "description": "Lists existing AWS role configurations.",
+        "operationId": "list-aws-role-configurations",
+        "parameters": [
+          {
+            "name": "source_accounts",
+            "in": "query",
+            "description": "Comma-delimited list of AWS account IDs.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "The page number for the list of results to return. Must be positive.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "The size of the page for the list of results. Must be positive.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n\t\"total_count\": 1,\n  \"page_size\": 1,\n  \"data\": [\n    {\n    \t\"access_key\": {\n        \"arn\": \"arn:partition:service:region:account-id:resource-id\",\n        \"account_id\": \"1234-5678-9012\",\n        \"expiration\": \"2022-10-31T12:00:00Z\",\n        \"is_session\": false,\n        \"id\": 1234567890,\n        \"region_name\": \"us-east-1\",\n        \"organization_id\": 1234567890,\n        \"unique_id\": \"1234-abcd-5678-efgh\",\n        \"aws_access_key_id\": \"1234abc5-123a-12ab-123a-12a34bcd5678\"\n      },\n      \"role_arn\": \"arn:aws:iam::123456789012:role/application_abc/component_xyz/TestAccess\",\n      \"account_id\": \"1234-5678-9012\",\n      \"duration_seconds\": 1000,\n      \"session_access_key\": {},\n      \"session_name\": \"test-session\",\n      \"external_id\": \"example-external-id\",\n      \"id\": 1234567890,\n      \"region_name\": \"us-east-1,\n      \"organization_id\": 1234567890\n    }\n  ]\n  \"total_pages\": 1,\n  \"page\": 1\n}"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "summary": "Create AWS Role Configuration",
+        "description": "Creates an AWS role configuration.",
+        "operationId": "create-aws-role-configuration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "role_arn",
+                  "session_name",
+                  "external_id",
+                  "region_name"
+                ],
+                "properties": {
+                  "role_arn": {
+                    "type": "string",
+                    "description": "he Amazon Resource Name (ARN) of the role to assume."
+                  },
+                  "duration_seconds": {
+                    "type": "integer",
+                    "description": "The duration, in seconds, of the role session. InsightCloudSec highly recommends using exactly 3600 seconds. The value specified can range from 900 seconds (15 minutes) up to the maximum session duration set for the role. However, most `AssumeRole` operations are cross-account and are restricted to 3600 seconds.",
+                    "default": 3600,
+                    "format": "int32"
+                  },
+                  "session_name": {
+                    "type": "string",
+                    "description": "An identifier for the assumed role session."
+                  },
+                  "external_id": {
+                    "type": "string",
+                    "description": "A unique identifier that required when you assume a role in another account. InsightCloudSec requires a unique external ID for all IAM `AssumeRole` operations. This ID has been auto-generated for this InsightCloudSec Organization in accordance to AWS best practices."
+                  },
+                  "region_name": {
+                    "type": "string",
+                    "description": "AWS region name. This represents the AWS partition where the Access Key was created and is used as the default region for STS operations."
+                  },
+                  "access_key_id": {
+                    "type": "integer",
+                    "description": "When `AssumeRole` cannot be done via a Trusted Role, provide an InsightCloudSec the integer ID of a saved IAM Access Key.",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "201",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n    \t\"access_key\": {\n        \"arn\": \"arn:partition:service:region:account-id:resource-id\",\n        \"account_id\": \"1234-5678-9012\",\n        \"expiration\": \"2022-10-31T12:00:00Z\",\n        \"is_session\": false,\n        \"id\": 1234567890,\n        \"region_name\": \"us-east-1\",\n        \"organization_id\": 1234567890,\n        \"unique_id\": \"1234-abcd-5678-efgh\",\n        \"aws_access_key_id\": \"1234abc5-123a-12ab-123a-12a34bcd5678\"\n      },\n      \"role_arn\": \"arn:aws:iam::123456789012:role/application_abc/component_xyz/TestAccess\",\n      \"account_id\": \"1234-5678-9012\",\n      \"duration_seconds\": 3600,\n      \"session_access_key\": {},\n      \"session_name\": \"test-session\",\n      \"external_id\": \"example-external-id\",\n      \"id\": 1234567890,\n      \"region_name\": \"us-east-1,\n      \"organization_id\": 1234567890\n    }"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/configs/aws/accounts/{organization_service_id}": {
+      "post": {
+        "summary": "Update AWS EKS Harvesting Account Configuration",
+        "description": "Updates an existing AWS EKS harvesting account configuration.",
+        "operationId": "update-aws-eks-harvesting-account-configuration",
+        "parameters": [
+          {
+            "name": "organization_service_id",
+            "in": "path",
+            "description": "The Organization Service ID.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "aws_role_config_id",
+                  "aws_eks_role_config_id"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "AWS account name."
+                  },
+                  "aws_role_config_id": {
+                    "type": "integer",
+                    "description": "`AwsIamRoleConfig` ID to be used for general purpose API harvesting. Role must be within the same AWS partition and account.",
+                    "format": "int32"
+                  },
+                  "aws_eks_role_config_id": {
+                    "type": "integer",
+                    "description": "`AwsIamRoleConfig` ID to be used as the default role for harvesting EKS clusters. Role must be within the same AWS partition and account.",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n\t\"name\": \"my-ics-aws-acct\",\n  \"account_id\": \"1234-5678-9012\",\n  \"partition\": \"aws\",\n  \"default_sts_region_name\": \"us-east-1\",\n  \"aws_eks_role_config_id\": 1,\n  \"cloud_type_id\": \"example-id\",\n  \"aws_role_config_id\": 1\n}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "my-ics-aws-acct"
+                    },
+                    "account_id": {
+                      "type": "string",
+                      "example": "1234-5678-9012"
+                    },
+                    "partition": {
+                      "type": "string",
+                      "example": "aws"
+                    },
+                    "default_sts_region_name": {
+                      "type": "string",
+                      "example": "us-east-1"
+                    },
+                    "aws_eks_role_config_id": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    },
+                    "cloud_type_id": {
+                      "type": "string",
+                      "example": "example-id"
+                    },
+                    "aws_role_config_id": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "get": {
+        "summary": "List AWS EKS Harvesting Account Configuration",
+        "description": "Lists an existing AWS EKS harvesting account configuration.",
+        "operationId": "list-aws-eks-harvesting-account-configuration",
+        "parameters": [
+          {
+            "name": "organization_service_id",
+            "in": "path",
+            "description": "The Organization Service ID.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n\t\"name\": \"my-ics-aws-acct\",\n  \"account_id\": \"1234-5678-9012\",\n  \"partition\": \"aws\",\n  \"default_sts_region_name\": \"us-east-1\",\n  \"aws_eks_role_config_id\": 1,\n  \"cloud_type_id\": \"example-id\",\n  \"aws_role_config_id\": 1\n}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "my-ics-aws-acct"
+                    },
+                    "account_id": {
+                      "type": "string",
+                      "example": "1234-5678-9012"
+                    },
+                    "partition": {
+                      "type": "string",
+                      "example": "aws"
+                    },
+                    "default_sts_region_name": {
+                      "type": "string",
+                      "example": "us-east-1"
+                    },
+                    "aws_eks_role_config_id": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    },
+                    "cloud_type_id": {
+                      "type": "string",
+                      "example": "example-id"
+                    },
+                    "aws_role_config_id": {
+                      "type": "integer",
+                      "example": 1,
+                      "default": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/configs/aws/roles/{id}": {
+      "post": {
+        "summary": "Update AWS Role Configuration",
+        "description": "Updates an existing AWS role configuration.",
+        "operationId": "update-aws-role-configuration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The AWS Scanner role configuration ID.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "role_arn",
+                  "session_name",
+                  "external_id",
+                  "region_name"
+                ],
+                "properties": {
+                  "role_arn": {
+                    "type": "string",
+                    "description": "The Amazon Resource Name (ARN) of the role to assume."
+                  },
+                  "duration_seconds": {
+                    "type": "integer",
+                    "description": "The duration, in seconds, of the role session. InsightCloudSec highly recommends using exactly 3600 seconds. The value specified can range from 900 seconds (15 minutes) up to the maximum session duration set for the role. However, most `AssumeRole` operations are cross-account and are restricted to 3600 seconds.",
+                    "default": 3600,
+                    "format": "int32"
+                  },
+                  "session_name": {
+                    "type": "string",
+                    "description": "An identifier for the assumed role session."
+                  },
+                  "external_id": {
+                    "type": "string",
+                    "description": "A unique identifier that required when you assume a role in another account. InsightCloudSec requires a unique external ID for all IAM `AssumeRole` operations. This ID has been auto-generated for this InsightCloudSec Organization in accordance to AWS best practices."
+                  },
+                  "region_name": {
+                    "type": "string",
+                    "description": "AWS region name. This represents the AWS partition where the Access Key was created and is used as the default region for STS operations."
+                  },
+                  "access_key_id": {
+                    "type": "integer",
+                    "description": "When `AssumeRole` cannot be done via a Trusted Role, provide an InsightCloudSec the integer ID of a saved IAM Access Key.",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n  \"access_key\": {\n    \"arn\": \"arn:partition:service:region:account-id:resource-id\",\n    \"account_id\": \"1234-5678-9012\",\n    \"expiration\": \"2022-10-31T12:00:00Z\",\n    \"is_session\": false,\n    \"id\": 1234567890,\n    \"region_name\": \"us-east-1\",\n    \"organization_id\": 1234567890,\n    \"unique_id\": \"1234-abcd-5678-efgh\",\n  \t\"aws_access_key_id\": \"1234abc5-123a-12ab-123a-12a34bcd5678\"\n  },\n  \"role_arn\": \"arn:aws:iam::123456789012:role/application_abc/component_xyz/TestAccess\",\n  \"account_id\": \"1234-5678-9012\",\n  \"duration_seconds\": 3600,\n  \"session_access_key\": {},\n  \"session_name\": \"test-session\",\n  \"external_id\": \"example-external-id\",\n  \"id\": 1234567890,\n  \"region_name\": \"us-east-1,\n  \"organization_id\": 1234567890\n}"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "summary": "Delete AWS Role Configuration",
+        "description": "Deletes an existing AWS Scanner role configuration.",
+        "operationId": "delete-aws-role-configuration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The AWS Scanner Role configuration ID.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/insights/findings-per-cloud/{organization_service_id}": {
+      "get": {
+        "summary": "Get Findings for a Cloud Account",
+        "description": "Get Insight findings for a given Cloud Account.",
+        "operationId": "get-findings-for-a-cloud-account",
+        "parameters": [
+          {
+            "name": "organization_service_id",
+            "in": "path",
+            "description": "The InsightCloudSec ID for the Cloud Account.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "The hash value for the next page of results. This value can be obtained from the `next_cursor` parameter in the response object if there are more results that match a successful request. This process can be repeated until the `next_cursor` response parameter is null.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{\n  \"count\": 22970,\n  \"next_cursor\": \"eyJvZmZzZXQiOiAyMDAsICJsaW1pdCI6IDUwfQ==\",\n  \"results\": [\n    {\n      \"identified_at\": \"2023-05-31 14:04:07\",\n      \"insight_id\": \"backoffice:1076\",\n      \"insight_name\": \"Private Image Instance Metadata Service Version 2 Support\",\n      \"namespace_id\": null,\n      \"resource_id\": \"privateimage:1:us-east-1:ami-12345678901234:\",\n      \"resource_name\": \"my-resource-name\"\n    },\n    {\n      \"identified_at\": \"2023-05-31 14:04:07\",\n      \"insight_id\": \"backoffice:1076\",\n      \"insight_name\": \"Private Image Instance Metadata Service Version 2 Support\",\n      \"namespace_id\": null,\n      \"resource_id\": \"privateimage:1:us-east-1:ami-12345678901234:\",\n      \"resource_name\": \"my-resource-name-2\"\n    },\n    ...\n  ]\n}"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Result": {
+                    "value": "{}"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    }
+  },
+  "x-readme": {
+    "headers": [
+      {
+        "key": "accept",
+        "value": "*/*"
+      },
+      {
+        "key": "accept-encoding",
+        "value": "gzip, deflate, br"
+      }
+    ],
+    "explorer-enabled": false,
+    "proxy-enabled": false,
+    "samples-enabled": true
+  },
+  "x-readme-fauxas": true
+}
