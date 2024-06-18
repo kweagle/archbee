@@ -3,3 +3,4 @@
 [Quick Start - Advanced](IDR/adv-qsg.md)
 
 # Top Tasks
+[Endpoint Scan](/endpoint-scan.md)
