@@ -1,0 +1,786 @@
+---
+title: "Product Advanced | Quick Start Guide"
+slug: "advanced-quick-start-guide"
+hidden: false
+createdAt: "2018-07-03T21:20:36.363Z"
+updatedAt: "2020-03-19T14:55:19.616Z"
+---
+
+As you get started, refer to this Quick Start Guide for guidance about how to approach Product's multi-step deployment process.
+
+[block:callout]
+{
+  "type": "info",
+  "body": "If you purchased Product (not designated as Essential, Advanced, or Ultimate), please follow **[Product Quick Start Guide | Advanced](/Product/advanced-quick-start-guide)** for tasks and materials suited to your product.",
+  "title": "Not sure if you're in the right place?"
+}
+[/block]
+
+![Product Advanced Flywheel](/Product/images/Product_AdvancedLifecycleFlywheel_withborders.png)
+
+We’ve outlined the important deployment milestones in this recommended order:
+* **[Days 1-15:](#days-1-15-get-up-and-running)** You'll install the Collector, deploy the Insight Agent, and set up six core event sources to begin aggregating your environment's data into Product and gain visibility across your network and digital perimeter.
+* **[Days 16-45:](#days-16-45-alert-and-investigate)** You'll review your detection coverage, explore investigations and Log Search, and begin to understand Product's deception technology so you can detect, investigate, and respond to threats efficiently and effectively.
+* **[Days 46-90:](#days-46-90-optimize-for-success)** You'll configure basic detection rules (formerly known as custom alerts), create your first custom dashboard, and get started with automation connections and workflows to improve your detection coverage, alert fidelity, and incident response time.
+
+## Product Overview and Core Concepts
+
+  Product contains many features, but your first 90 days will center around the key parts of the product outlined in this section. For an overview of the areas you'll explore, watch our Product Demo video!
+
+[block:vidyard]
+{
+"videoID": "sboqaEAk2cT3TB8HvSe4rp",
+}
+[/block]
+
+Here's a preview of the topics we cover in this demonstration:
+  * 0:00 - Overview
+  * 0:40 - Data Collection
+  * 3:23 - Log Search
+  * 4:29 - Dashboards and Reports
+  * 5:51 - Detection Rules
+  * 7:32 - Investigations
+  * 8:58 - Automation
+  * 10:11 - Settings
+  * 11:07 - Conclusion
+
+<details><summary>Core Components</summary>
+
+  ### On-premise components
+
+  Review Product's on-premises components to understand their purpose and value. 
+
+  | Component              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+  |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | <a href="https://docs.Company.com/Product/collector-overview/" target="_blank">Collector</a> | **Required for:** <br>Event source log collection<br><br>To retrieve data, the Collector either polls event sources for the data, or has data pushed to it from the event sources. By default, the Collector filters logs to cut down on duplicate or unnecessary data. The Collector sends the log data to the Insight Cloud for analysis.<br><br> **Each Collector must be installed on a dedicated host and only one Collector instance can be on each machine.**           |
+  | <a href="https://docs.Company.com/Product/insight-agent#overview" target="_blank">Insight Agent</a> | **Required for:** <br>- Endpoint detection with detection rules and MITRE ATT&CK coverage<br>- Endpoint investigative telemetry<br>- Endpoint response actions<br><br>An Insight Agent is lightweight software installed on an endpoint to monitor the endpoint and report security-relevant events. To have the most cohesive understanding of your environment, it is recommended that you **install an Insight Agent on all endpoints and servers you wish to monitor**. The Insight Agent monitors specific <a href="https://docs.Company.com/Product/insight-agent#monitored-event-codes" target="_blank">event codes</a> and collects endpoint telemetry data to provide an enhanced understanding of your endpoints' activity and drive quicker response time to detections. The agent only collects data from the asset on which it is installed.                                                                                                                                                                                       |
+  | <a href="https://docs.Company.com/Product/insight-network-sensor-overview" target="_blank">Insight Network Sensor</a> | **Required for:** <br>- Network Traffic Analysis (NTA)<br>-   Additional asset information such as, DNS queries, asset-connected countries and IP addresses, intrusion detection signatures, and more.<br><br>The Insight Network Sensor allows you to monitor, capture, and assess the end-to-end network traffic moving throughout your physical and virtual environments. Product uses network sensor data to generate investigations and alerts based on the network traffic traversing your environment, one of which is a new investigation data source based on IPv4 flow data. Product also leverages DNS and DHCP information that the network sensor extracts from network packets to produce other actionable alerts.                                                                                                                                                                    |
+  | <a href="https://docs.Company.com/Product/insight-orchestrator" target="_blank">Insight Orchestrator</a>| **Required for:** <br>- Automation workflows<br><br>The Insight Orchestrator is a server in your network or cloud environment that integrates your tools and systems with InsightConnect, Company's security orchestration, automation and response (SOAR) solution.                                                                                                                                                                                                                                                                                                                                                          |
+  | <a href="https://docs.Company.com/Product/non-expiring-and-service-accounts" target="_blank">Service Account</a> | **Required for:** <br>- User Behavior Analytics (UBA) powered by legacy detection rules<br><br>Service Accounts represent machine accounts that are typically designed for machine processing within your network. Product does not expect these accounts to be used outside your network. If you mark an account as a Service Account, Product will monitor for any activity entering your network using that account and will generate an `INGRESS FROM SERVICE ACCOUNT` alert to warn you of that activity. For example, Product would generate an alert if someone used a Service Account to log in to a VPN. |
+  | <a href="https://docs.Company.com/Product/Product-event-sources" target="_blank">Event Source</a> | **Required for:** <br>- Specific detection rules and legacy detection rules<br><br>An event source is an application, appliance, server, service, or other IT asset that generates log events.                                                                                                                                                                                                                                                                                                                                                                    |
+
+  ### Detection rules, alerts, and deception technology
+
+  Review this section to understand Product's essential detection features, their purposes, values, and how they contribute to your environment's security. 
+  
+  | Component                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+  |-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | <a href="https://docs.Company.com/Product/detection-rules/" target="_blank">Detection Rules</a> | Detection rules are the logic Product uses to detect threats using Company’s wide array of threat intelligence. Our Detection Rule Library covers a variety of user behaviors and attacker techniques.<br><br> **What it powers:**<br>- MITRE ATT&CK matrix<br>- Alerts |
+  | <a href="https://docs.Company.com/Product/uba-detections" target="blank">Legacy Detection Rules</a> | Legacy detection rules run on Product's legacy User Behavior Analytics (UBA) engine. These rules apply insight to the millions of network events your users generate every day to detect compromised credentials, lateral movement, and other malicious behavior.<br><br> **What it powers:**<br>- Alerts generated by legacy detection rules<br>- Investigations generated by legacy detection rules|
+  | <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules/" target="_blank">Basic Detection Rules</a> | Basic Detection Rules are available to you for the times when Product's built-in detection rules do not suit your needs or when you want to track certain behaviors that are specific to your environment. If you need to detect on certain, custom events, create a basic detection rule. There are three types of basic detection rules: Inactivity Detection, Pattern Detection, and Change Detection rules.<br><br> **What it powers:**<br>- Basic detection rule investigations<br>- File Integrity Monitoring (FIM) investigations |
+  | <a href="https://docs.Company.com/Product/deception-technology/" target="_blank">Deception Technology</a> | Deception technology allows you to create an illusion for attackers that they have found something of interest in your environment. When you deploy intruder traps on your network, they act as a virtual trip wire. Once an attacker is tricked into accessing the trap, Product fires an alert to flag the suspicious activity.<br><br> **What it powers:**<br>- Legacy detection rules<br>- Investigations generated by legacy detection rules|
+  | <a href="https://docs.Company.com/Product/honeypot" target="_blank">Honeypot</a> | A honeypot is a virtual server that you can deploy on your network. Honeypots can look like any other machine on the network, or they can be deployed to look like something an attacker could target. You can have a single honeypot or multiple honeypots, and you can deploy them straight out of Product. Honeypots lie in wait for "attacker" events to happen, such as a port scan or an attempted user authentication, which immediately sets off an alarm. If you deploy the Company Honeypot and enable the associated alerts in Product, you will be notified if such an activity occurs. Once attackers find an initial foothold in a network, their next step is typically to run a network scan to identify all the other assets in the network.<br><br>Includes Honey Users, Honey Files, Honey Credentials, and Honey Alerts<br><br> **What it powers:**<br>- Honeypot Access detection rule and investigations<br>- Honey User Authentication detection rule and investigations<br>- Honey File Accessed detection rule and investigations<br>- Local Honey Credential Privilege Escalation Attempt detection rule and investigations<br>- Remote Honey Credential Authentication Attempt detection rule and investigations<br>- Corresponding Honey Alert type investigations|
+  | <a href="https://docs.Company.com/Product/file-integrity-monitoring/" target="_blank">File Integrity Monitoring (FIM)</a> | File Integrity Monitoring (FIM) allows you to audit and monitor changes to critical files and folders on your network. When you turn on FIM, the Insight Agent starts collecting FIM events. Product can then attribute users to file modification activity. You can create alerts based on certain file log events to notify you when one of your users modifies a critical file or folder.<br><br> **What it powers:**<br>- FIM alerts<br>- FIM investigations |
+  
+  </details>
+
+<details><summary>Product Architecture</summary>
+
+  Watch this <a href="https://academy.Company.com/Company-Product-1/1037720/scorm/1c9hyr14wq7af?reg=1" target="_blank">Product architecture and system components overview</a> on the Company Academy.
+
+</details>
+
+
+## Prepare for Deployment
+ To ensure you get the most out of your first 90 days with Product, it’s important to understand your deployment tasks and create a plan for deployment. 
+
+[block:callout]
+{
+  "type": "warning",
+  "body": "Company supports Product in Google Chrome (latest stable release) and Mozilla Firefox (latest stable release).",
+  "title": "Supported Browsers"
+}
+[/block]
+
+<details><summary>Set up a service account</summary>
+
+Before provisioning resources and deploying Product, you must set up a Service Account to collect log data for Product. You can either designate an existing user account, or create a Service Account. 
+
+Review the <a href="https://docs.Company.com/Product/set-up-a-service-account" target="_blank">Service Account requirements</a> and set up an account.
+
+</details>
+
+<details><summary>Review system requirements</summary>
+
+Each component of Product requires specific resources. Navigate to each component's designated page for a full list of requirements. 
+
+  | Component              | Required Resources                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+  |------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | Collector | - 4 CPU cores with 2GHz+ on each core<br>- 8 GB RAM recommended<br>- 60 GB+ available disk space<br>- Configured with a Fully Qualified Domain Name (FQDN) such as `idrcollector23.myorg.com`<br><br>See <a href="https://docs.Company.com/Product/collector-requirements" target="_blank">Collector Requirements</a> requirements for more information. |
+  | Insight Agent | Required ports for Collector communication through TCP:<br><br>- 5508<br>- 6608<br>- 8037<br><br>If you are using the Collector for <a href="https://docs.Company.com/Product/endpoint-monitor" target="_blank">endpoint monitoring</a>, ensure the following ports are open:<br><br>- 5508<br>- 6608<br>- 20000 – 30000<br><br>See <a href="https://docs.Company.com/insight-agent/requirements/" target="_blank">Insight Agent Requirements</a> requirements for more information. |
+  | Service Account< | You can either designate an existing user account as a service account, or create a new account account as your service account, that meets all of the following requirements:<br><br>- <a href="https://docs.Company.com/Product/set-up-a-service-account#active-directory-permissions" target="_blank">Active Directory Permissions</a><br>- <a href="https://docs.Company.com/Product/set-up-a-service-account#ldap-permissions" target="_blank">LDAP Permissions</a><br>- <a href="https://docs.Company.com/Product/set-up-a-service-account#microsoft-dns-permissions" target="_blank">Microsoft DNS Permissions</a><br>- <a href="https://docs.Company.com/Product/set-up-a-service-account#microsoft-dhcp-permissions" target="_blank">Microsoft DHCP Account Permissions</a><br>- <a href="https://docs.Company.com/Product/endpoint-monitor" target="_blank">Endpoint Monitor</a><br><br>See <a href="https://docs.Company.com/Product/set-up-a-service-account" target="_blank">Setting Up a Service Account</a> for more information. |
+  | Event Source | Designate a Service Account with the correct permissions<br><br>See <a href="https://docs.Company.com/Product/core-event-sources" target="_blank">Core Event Sources </a> for more individual event source requirements. |
+  | Honeypot | - 1 CPU<br>- 1GB RAM<br>- 10 GB hard disk space<br><br>See <a href="https://docs.Company.com/Product/system-requirements#honeypot-requirements" target="_blank">Honeypot Requirements</a> for more information. |
+  | Insight Network Sensor | Although the network sensor software itself runs in the form of a container, all physical or virtual network sensor hosts must run one of the following supported Linux operating systems. The version number shown for each one indicates the minimum supported version:<br><br>- Ubuntu Server 20.04 and later<br>- RHEL 7.2 and later<br>- CentOS 8 and later<br>- Fedora 30 and later<br>- SUSE 15.0 and later<br>- Debian 8.11 and later<br><br>See <a href="https://docs.Company.com/sensor/insight-network-sensor-requirements" target="_blank">Network Sensor Host Requirements</a> for more information. |
+
+</details>
+
+<details><summary>Provision resources in your environment</summary>
+
+  We recommend provisioning specific resources as soon as possible to ensure a quick and easy deployment experience. 
+  
+These core components require provisioning hardware:
+  * 1 server to install the <a href="https://docs.Company.com/Product/collector-requirements" target="_blank">Product Collector</a>
+  * 1 server to install the <a href="https://docs.Company.com/insightconnect/install-and-activate-the-orchestrator" target="_blank">Insight Orchestrator</a>
+  * A virtual or physical Linux host to install <a href="https://docs.Company.com/sensor/network-sensor-host-system-requirements" target="_blank">Insight Network Sensor</a> software
+  * A <a href="https://docs.Company.com/sensor/step-2-configure-a-network-traffic-source" target="_blank">source of network traffic</a> for the Insight Network Sensor
+
+</details>
+
+<details><summary>Log in to the Insight Platform</summary>
+
+[block:callout]
+{
+  "type": "info",
+  "body": "If you already have a platform account from a trial or existing subscription to another Company solution, you’re all set! Use your existing email address to log in to [https://insight.Company.com/login](https://insight.Company.com/login).",
+  "title": "Already have an Insight Platform account?",
+}
+[/block]
+ The Company Insight Platform is your base within the ecosystem of Company cloud products and services. It provides a centralized location for administrative functions and makes navigating the Insight product suite simple and easy.
+
+To log in to the platform, you need a Company Insight Platform account. 
+  
+  **To create an account:**
+
+  1. Check your corporate email inbox for an email from the Company Insight Platform team.
+  2. Visit `insight.Company.com/login`.
+  3. Select **Haven’t activated your account?**.
+  4. Enter your corporate email address to receive an activation email with next steps. If you do not receive an activation email, reach out to your Customer Adoption Manager (CAM) or Customer Success Manager (CSM).
+  5. Refer to the activation email and follow the instructions to create and activate your Insight Platform account
+
+</details>
+
+<details><summary>Configure daily data archiving</summary>
+
+Product stores your log data for a retention period of 13 months. If you need to retain data for longer than that period, such as for security investigation or compliance purposes, we recommend that you set up daily archiving. Archiving allows you to retain a copy of your log data using the storage capabilities of Amazon S3. 
+
+To set up data archiving, see <a href="https://doc.Company.com/Product/data-archiving" target="_blank">Data Archiving</a>. 
+  
+[block:callout]
+{
+  "type": "warning",
+  "body": " If you do not configure daily archiving, you can download a backup of your data up to 2 times a year using Product's Historical Data Archiving feature. This process can take several days to complete.",
+  "title": "Daily Archiving versus Historical Data Archiving",
+}
+[/block]
+
+</details>
+
+[block:callout]
+{
+  "type": "info",
+  "body": "
+  * [Plan your Product deployment](https://academy.Company.com/Company-Product-1/967656/scorm/2ab6seobxuh20?reg=1) with the help of the Company Academy.
+  * Conduct a [Network and Environment Audit](https://docs.Company.com/Product/network-and-environment-audit/)",
+  "title": "Additional Resources",
+}
+[/block]
+
+##  Days 1 - 15: Get Up and Running
+Install Collectors, deploy Insight Agents, and set up core event sources so Product can begin collecting the right data to detect, investigate and respond to threats in your environment.
+
+<details><summary>Install the Collector</summary>
+
+  The Collector is the on-premises component of Product that either polls data or receives data from Event Sources and makes it available for Product to analyze. (An Event Source represents a single device that sends data in the form of logs to the Collector.)
+  
+  The Collector captures the data generated by your event sources, compresses the data, encrypts it, and pushes it up to the Insight Platform. The Insight Platform will then normalize, attribute, analyze, and present that data for search. 
+
+  #### How to install
+
+  Identify all the servers where event source data originates from. Many networks consolidate security and network administration tools and services in a data center or corporate office. This central location is an ideal place to deploy a Collector on a dedicated host.
+
+ 1. Review the <a href="https://docs.Company.com/Product/collector-requirements" target="_blank">Collector Requirements</a>. 
+ 2. Install collectors on network servers or virtual machines that meet the following requirements:
+     * 4 CPU cores with 2GHz+ on each core
+     * 8 GB RAM recommended
+     * 60 GB+ available disk space
+     * Configured with a Fully Qualified Domain Name (FQDN) such as idrcollector23.myorg.com 
+
+ For detailed setup instructions, see <a href="https://docs.Company.com/Product/collector-installation-and-deployment" target="_blank">Collector Installation and Deployment</a>.
+</details>
+
+<details><summary>Deploy the Insight Agent</summary>
+
+  The Insight Agent enables Product to provide continuous endpoint detection and response, which is necessary for identifying the early signs of an attack. 
+  
+  The Insight Agent collects live system information – including basic asset identification information, running processes, and logs – from your assets and sends it to the Insight Platform for analysis. The data is then passed to Product, where it unlocks the vast library of attacker behavior and endpoint detection rules. Combined with network and user data, this helps you identify stealthy attacks for both your critical and remote assets across the MITRE ATT&CK framework. 
+     
+ #### How to deploy the Insight Agent
+
+  Each Insight Agent only collects data from the endpoint on which it is installed. You must install the Agent on all assets you want Product to monitor. The Insight Agent can be installed directly on Windows, Linux, or Mac assets. 
+
+  You can deploy the Insight Agent on your target assets using either a <a href="https://docs.Company.com/insight-agent/using-a-token/" target="_blank">token-based installer</a> or <a href="https://docs.Company.com/insight-agent/certificate-package-installation-method/" target="_blank">certificate package installer</a>. The token-based installer uses a token to download configuration files, whereas the certificate package installer provides a .zip file with the configuration files. 
+  
+  1. Decide which installer is best suited for your environment. 
+  2. Read the <a href="https://docs.Company.com/insight-agent/download" target="_blank">steps to download the installer</a> and follow the instructions. 
+
+</details>
+
+<details><summary>Set up core event sources</summary>
+
+ Product’s core event sources provide the most data in regards to user attribution. User attribution correlates endpoint activity to individual users, including what endpoint applications they use, and when. Attribution gives you a more complete image of your security posture, as user accounts are the most common targets for sophisticated attacks.
+
+ Setup instructions for each event source can vary depending upon the technologies you use. 
+
+  To take advantage of Product's detection rule capabilities, you must set up these event sources:
+
+  <details><summary>LDAP</summary>
+
+  **Required for:** Detection Rules and Legacy Detection Rules 
+
+  Adding a Lightweight Directory Access Protocol (LDAP) server allows Product to track the users, admins, and security groups contained in the domain and to link account activity with real users to identify privileged and service accounts.
+
+  #### To add the LDAP event source:
+  * Designate a <a href="https://docs.Company.com/Product/set-up-a-service-account" target="_blank">Service Account</a> with the correct permissions.
+  * Open Port 636 (LDAPS) between the Collector and the LDAP server.
+
+For detailed setup instructions, see <a href="https://docs.Company.com/Product/ldap" target="_blank">LDAP</a>.
+
+  </details>
+
+  <details><summary>Active Directory</summary>
+
+  **Required for:** Detection Rules and Legacy Detection Rules 
+
+  Active Directory provides security logs from your domain controllers and authentication and administrative events for your domain users. Make sure that you add one Active Directory event source for each domain controller.
+
+  #### To add the Active Directory event source:
+  * Open ports 135, 139, and 445 between the Collector and Active Directory.
+  * Designate a <a href="https://docs.Company.com/Product/set-up-a-service-account" target="_blank">Service Account</a> with the correct permissions.
+
+  For detailed setup instructions, see <a href="https://docs.Company.com/Product/active-directory" target="_blank">Active Directory</a>.
+
+  </details>
+
+  <details><summary>DHCP</summary>
+
+  **Required for:** Legacy Detection Rules
+
+  Dynamic Host Configuration Protocol (DHCP) event logs provide IP lease information to correlate each IP address with its assigned host at the time of the event.
+
+  #### To add the DHCP event source:
+
+  Choose one of the following methods:
+  * <a href="https://docs.Company.com/Product/microsoft-dhcp#microsoft-dhcp-servers-logs" target="_blank">Domain Admin Account</a>: Use this method if you want to collect logs using a Domain Admin account.
+  * <a href="https://docs.Company.com/Product/microsoft-dhcp#configure-with-nxlog" target="_blank">NXLog</a>: Use this method if you don’t want to use a Domain Admin account to collect logs.
+  
+  </details>
+
+  <details><summary>DNS</summary>
+
+  **Required for:** Legacy Detection Rules
+
+  Connecting DNS as an event source allows Product to track services, incidents, and threats found on your network. DNS logs gathered from a DNS event source provide more information about web traffic. DNS also provides greater visibility into destination URLs, which can be flagged in Account Visited Suspicious Link incidents.
+
+  For instructions on how to configure DNS appliances with Product, see <a href="https://docs.Company.com/Product/dns" target="_blank">DNS</a>.
+
+  </details>
+
+  <details><summary>VPN</summary>
+
+  **Required for:** Detection Rules and Legacy Detection Rules
+  
+  VPN logs provide visibility into users' remote network ingress activity and allow you to collect and verify information about user activity.
+
+  For setup instructions, see <a href="https://docs.Company.com/Product/vpn" target="_blank">VPN</a>.
+
+  </details>
+
+  <details><summary>Firewall</summary>
+
+  **Required for:**  Detection Rules
+
+  By introducing Firewall data, you allow Product to track visits to malicious domains or cloud services. More than simply collecting configuration logs and change logs, Product can automatically attribute connection events to the users and endpoints that are accessing such websites.
+
+  We recommend you set up separate Firewall event sources for each Firewall type.
+
+
+  #### To add a Firewall event source:
+
+  Determine which Firewall event source(s) best suits your needs and follow the related configuration steps.
+
+  For setup instructions for each type of Firewall event source, see <a href="https://docs.Company.com/Product/firewall" target="_blank">Firewall</a>.
+
+  </details>
+
+</details>
+
+[block:callout]
+{
+  "type": "info",
+  "body": "
+  * [Product Agent Deployment Demonstration](https://academy.Company.com/Company-Product-1/768425)
+  * [Insight Collector Deployment Overview](https://academy.Company.com/Company-Product-1/1113953/scorm/11bctyt75z1uf?reg=1)
+  * [Windows Server Collector Deployment](https://academy.Company.com/Company-Product-1/1166155?reg=1)
+  * [Linux Server Collector Deployment](https://academy.Company.com/Company-Product-1/1127048?reg=1)
+  "title": "Deployment Videos",
+}
+[/block]
+
+## Days 16 - 45: Alert and Investigate
+Dive into Product’s detection coverage! Explore detection rules, investigations, alerts, deception technology, and Log Search to see how all of these components work together. Start using Product's powerful query capabilities, and visualize your log data using dashboards.
+
+<details><summary>Review your detection coverage</summary>
+
+#### Product Detection Engines
+
+Product's detection capability is powered by 3 detection engines – The detection rule engine, the legacy UBA engine, and the basic detection rule engine (formerly known as custom alerts). Let's take a look at each: 
+
+  * **Detection rule engine:** The primary detection rule engine detects on a variety of user behaviors and attacker techniques. Each <a href="https://docs.Company.com/Product/modify-detection-rules" target="_blank"> detection rule</a> hunts for a unique attacker behavior or user behavior.
+  * **Legacy UBA engine:** The legacy UBA engine is powered by built-in <a href="https://docs.Company.com/Product/modify-uba-detection-rules" target="_blank">legacy detection rules</a> that apply insight to the millions of network events your users generate every day. These rules detect compromised credentials, lateral movement, and other malicious behavior.
+  * **Basic detection rules:** Product provides powerful detection capabilities, but there may be times when they do not cover all your requirements. The basic detection rules engine allows you to create <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules" target="_blank">custom alerting</a> rules to detect inactivity, patterns in data, or changes in data.
+
+#### Detection Rules 
+
+  Detection rules are the logic Product uses to detect threats using Company’s wide array of threat intelligence. When the logic of a detection rule matches an event, an alert is created. Certain alerts automatically trigger investigations – this behavior is defined in the detection rule logic. On the Detection Rules page, you will find 2 tabs of built-in detection rules:
+
+  * <a href="https://docs.Company.com/Product/detection-rules/#attacker-behavior-analytics-aba" target="_blank">Detection Rule Library</a>: The Detection Rule Library contains rules that detect on a variety of user behaviors and attacker techniques. You can see all detection rules and the number of detections over the last 30 days on the **Detection Rule Library** tab of the Detection Rules page. You can also view <a href="https://docs.Company.com/Product/detection-rules#rule-logic" target="_blank">rule logic</a>, related <a href="https://docs.Company.com/Product/detection-rules#threat-groups" target="_blank">Threat Groups</a> and <a href="https://docs.Company.com/Product/detection-rules#mitre-attack" target="_blank">MITRE ATT&CK mapping</a>, and <a href="https://docs.Company.com/Product/detection-rules#filter-aba-detection-rules" target="_blank">filter</a>, <a href="https://docs.Company.com/Product/detection-rules#sort-aba-detection-rules" target="_blank">sort</a> and <a href="https://docs.Company.com/Product/detection-rules#search" target="_blank">search</a> detection rules.
+  * <a href="https://docs.Company.com/Product/detection-rules/#user-behavior-analytics-uba" target="_blank">Legacy Detection Rules</a>: Legacy Detection Rules run on Product's legacy User Behavior Analytics (UBA) engine. These rules apply insight to the millions of network events your users generate every day to detect compromised credentials, lateral movement, and other malicious behavior. To view legacy detection rules in Product, click Detection Rules in the left menu, and click the **Legacy Detection Rules** tab.
+
+  All out-of-the-box detection rules can be tuned to suit your environment's needs:
+  - <a href="https://docs.Company.com/Product/modify-detection-rules" target="_blank">Modify Detection Rules</a>
+  - <a href="https://docs.Company.com/Product/modify-uba-detection-rules" target="_blank">Modify Legacy Detection Rules</a>
+
+ #### Notable Events and Alerts that allow you to prioritize your response
+  Every moment Product is running, it finds and collects thousands of threats from all the assets and endpoints it has visibility into. However, many activities set off alerts even though they are not high profile threats, causing unnecessary alarm and risking potential burnout for Security teams investigating these alerts.
+
+  **Notable Events**<br>
+  As a part of Product's legacy user behavior analytics (UBA), Product monitors and baselines each user's activity, establishing a pattern for which assets the user owns, which assets they access, their remote login location, and other activity. <a href="https://docs.Company.com/Product/notable-events" target="_blank">Notable Events</a> are the events that fall between expected behavior and alert-worthy behavior. It is expected that almost any network will experience a large number of notable events on any given day.
+
+  
+  When user activity triggers an alert that generates an investigation, related notable events are automatically added to Investigation Timeline. This helps analysts better contextualize the behavior without these notable events going completely unobserved, and ensures your security team isn’t overwhelmed with low fidelity alerts.
+
+**Alerts**<br>
+  Alerts arrive to you in the form of an email with an incident number and short description to inform you of notable events and suspicious behavior captured by Product. There are a few different types of alerts and alert settings available:
+
+  * <a href="https://docs.Company.com/Product/uba-detections" target="_blank">Legacy detection rules</a>: Product has over 60 legacy detection rules that are generated by Product's legacy User Behavior Analytics detection engine.
+  * <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules" target="_blank">Basic detection rules</a>: For detailed information on Product's basic detection rule capabilities, check out the configuration sections for <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#inactivity-detection-alerts" target="_blank">Log Inactivity Detection Rules</a>, <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#pattern-detection-alert" target="_blank">Log Pattern Detection Rules</a>, and <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#change-detection-alert" target="_blank">Log Change Detection Rules</a>.
+
+</details>
+<details><summary>Explore investigations</summary>
+ 
+  Investigations are an aggregate of the applicable alert data in a single place and are closely tied to Detection Rules and Alerts. The Investigations page allows you to quickly search your active investigations and provides you with the context you need to effectively prioritize, sort, and respond to alerts. 
+
+  ![Product Investigations Page Preview](/Product/images/investigations_page_preview.png)
+
+ **Let's review the Investigations home screen:**
+  1. Investigations are listed in order of priority -- **low**, **medium**, **high**, and **critical**. You can also sort them by date created and by most recent detection.
+  2. **Filter** your investigations by their attributes.
+  3. Select the **date range** of the investigations you want to explore.
+  4. **Search** your investigations by investigation name, associated users, or associated assets.
+  5. **Create** a new investigation.
+  6. Toggle between **timeline** and **table** view for a detailed look into a specific investigation.
+  7. Change the status of an investigation to **open**, **investigating**, or **closed**.
+
+  See <a href="https://docs.Company.com/Product/investigations" target="_blank">Investigations</a> to learn more. 
+ 
+</details>
+
+<details><summary>Explore Log Search and Queries</summary>
+
+  Your connected event sources and environment systems produce data in the form of raw **logs**. Log Search takes every log of raw, collected data and automatically sorts them into **log sets** for you. New log events are added to the existing log and grouped with other logs in the log set, based on when the log event was created.
+
+  When data is ingested, repetitive activity is processed and combined into a single entry. The count of the repeated events are included in the combined entry, and other fields such as bytes transferred are summarized. To learn more about data deduplication, read [Collector Overview](doc:collector-overview#data-deduplication).
+  
+  #### Use queries to enrich alerts and investigations 
+  You can search your logs to learn more about the incident in your environment that triggered the alert or the investigation. 
+
+  Log Entry Query Language (LEQL) is used when building queries in Product. LEQL supports Regular Expressions (RegEx) and can be used when creating basic detection rule queries and dashboards.
+
+  Log Search supports many Product capabilities:
+  * Data ingestion
+  * Detection
+  * Basic detection rules
+  * Dashboards and reporting
+  * Compliance standards
+
+
+  #### Build and save a query
+
+  Product provides different ways to search your data, including RegEx, String, KeyValue, or Keyword searches. With LEQL, you can construct queries to extract the hidden data within your logs.
+
+  LEQL follows SQL-style syntax and constructing a query is simple and intuitive. Product requires you to input a `where()` clause first (if your query requires one) and add subsequent clause(s) and function(s), such as `groupby()` or `calculate`, respectively.
+
+  * `where ()` = search <br>
+  * `groupby ()` = field <br>
+  * `calculate (:)` = function:field
+
+  #### Try it out
+  Test these queries in Log Search and see the results for yourself.
+
+  * where(result ISTARTS-WITH "failed" AND logon_type!=NETWORK)groupby(destination_user, destination_asset)limit(5, 1)
+  * where(action=MEMBER_ADDED_TO_SECURITY_GROUP AND group IIN [admin, desktop, network, support, "service accounts"])groupby(source_user, target_account, group)
+  * where(source_account==target_account)groupby(action, source_user))
+
+  To save a query for future use, click the ellipsis next to the **Run** button and select **Save Query**.
+
+  See <a href="https://docs.Company.com/Product/log-search" target="_blank">Log Search</a> for more information.
+
+</details>
+
+<details><summary>Visualize your data with dashboards</summary>
+
+ Dashboards allow you to build custom views of the data you want to monitor. As a starting point, either create a new dashboard or use an existing dashboard. Add, edit, resize, and rearrange the data visualization cards to tailor the data view to your needs.
+
+#### Explore the IT Operations Dashboard
+ 
+  The IT Operations Dashboard offers a high level view of Weekly Account Lockouts and Unlocks, Most Active admin accounts on user accounts. Most Active admin accounts on their own accounts, Top 5 Directory groups by most membership adds, and more. 
+
+  The IT Operations Dashboard is populated by data sent from **Active Directory**, **Firewall**, **VPN**, and **Cloud Service** event sources. To take advantage of this dashboard, be sure those event sources have been set up.
+  * **Active Directory** event sources send Active Directory Admin Activity, Asset Authentication and Raw log data.
+  * **Firewall** and **VPN** event sources send Firewall Activity and Ingress Authentication logs.
+  * **Cloud Service** event source send Ingress Authentication logs.
+
+**To set up the IT Operations Dashboard** 
+
+  1. From the Product left menu, click **Dashboards and Reports**.
+  2. From the dashboard list, click the **Dashboard Library** button. The Dashboard Library modal appears.
+  3. Search for the **IT Operations Dashboard** and click **Add**.
+
+</details>
+
+<details><summary>Understand deception technology</summary>
+
+Some types of stealthy behavior can be difficult to discern from normal activity, allowing the attacker to sneak past your security tools and into your organization undetected. Placing intruder traps as a way to distract attackers can often help you find attackers earlier and take action to block them before they access something they should not.
+
+#### Review Honey Items
+
+Company Honey Items, a type of intruder trap, can attract hackers because they are “sweet” with opportunity. The most common type of intruder trap is a honeypot, which is a decoy system designed to gather information about attackers on your network. It can help you learn how attackers are accessing your systems.
+
+ Product has four kinds of deception traps that you can configure and deploy. Attempted access or use of these intruder traps triggers <a href="https://docs.Company.com/Product/honey-alerts" target="_blank">Honey Alerts</a> in Product. We recommend deploying deception traps in this recommended order:
+
+  1. <a href="https://docs.Company.com/Product/honeypot" target="_blank">Honeypots</a>: Deploy these to cover as much network as possible (for instance, one for each subnet).
+  2. <a href="https://docs.Company.com/Product/honey-users" target="_blank">Honey Users</a>: Add a user to the Active Directory that matches how you typically configure usernames, but also conveys it may be a domain admin.
+  3. <a href="https://docs.Company.com/Product/honey-files" target="_blank">Honey Files</a>: Deploy files that appear to be valuable, such as a financial report or something with personally identifiable information (PII).
+  4. <a href="https://docs.Company.com/Product/honey-credentials" target="_blank">Honey Credentials</a>: These are managed by Company on the Agent so no setup is required.
+   
+#### Configure a honeypot
+
+  A honeypot is a virtual server that you can deploy on your network from Product. Honeypots can look like any other machine on the network, or they can be deployed to look like something an attacker could target. You can have a single honeypot or multiple honeypots, and you can deploy them straight out of Product. Honeypots lie in wait for “attacker” events to happen, such as a port scan or attempted user authentication, which immediately sets off an alarm. If you deploy the Company Honeypot and enable the associated detection rules in Product, you will be notified if such activity occurs. Once attackers find an initial foothold in a network, their next step is typically a network scan to identify all the other assets in the network.
+
+  Product's Honeypot is an OVA appliance designed for deployment in VMware environments. The honeypot can detect network reconnaissance, typically in the form of suspicious network or port scanning. The Honeypot OVA contains an appliance that is able to listen on all ports. All scanning or connection attempts are allowed. Each time a connection is attempted, the honeypot captures information about the source asset, and potential user associated with the connection. This data is immediately pushed up to the Insight platform, generating a <a href="https://docs.Company.com/Product/honey-alerts" target="_blank">Honeypot Access Alert</a>.
+
+ **How to configure a honeypot**
+
+  1. From the Product homepage, click **Data Collection** on the left menu.
+  2.  In the top right corner, click **Setup Honeypot** and select **Download Honeypot**.
+
+  The **Honeypot OVA** download will begin automatically. See <a href="https://docs.Company.com/Product/honeypot#download-a-honeypot" target="_blank">Download a Honeypot</a> for next steps. 
+
+</details>
+
+[block:callout]
+{
+  "type": "info",
+  "body": "
+   * [Map Product Detections to the MITRE ATT&CK Framework](https://academy.Company.com/Company-Product-1/1041425/scorm/2ly8gunlf5sgy) Company Academy lesson",
+  "title": "Additional Resources",
+}
+[/block]
+
+## Days 46 - 90: Optimize for Success
+Configure basic detection rules (formerly known as custom alerts), create custom dashboards, and create automation workflows to tailor Product to your environment's unique needs.
+
+<details><summary>Configure Basic Detection Rules</summary>
+
+  With Product, you have the option of creating basic detection rules when built-in rules do not suit your needs. You configure basic detection rules in Log Search. Basic detection rules can be created manually, or configured to auto-populate. You can always switch to a different rule type during configuration. There are three kinds of basic detection rules.
+  
+  #### Log Inactivity Detection Rules
+  Also known as “Up Down Monitoring”, inactivity rules can be used to notify you when an entire log, log group, or particular pattern becomes inactive for a given time period.
+  
+For setup instructions, see <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#auto-populate-a-log-inactivity-detection-rule" target="_blank">Auto-populate a Log Inactivity Detection Rule</a> or <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#manually-configure-a-log-inactivity-detection-rule" target="_blank">Manually configure a Log Inactivity Detection Rule</a>.
+  
+  #### Log Pattern Detection Rules
+   In order for a detection to trigger, a log must match the exact pattern you enter as a search term. Detecting on patterns can be useful in situations such as monitoring server errors, critical exceptions, and general performance, and allows you to only monitor events that are important to you.
+
+For setup instructions, see <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#auto-populate-a-log-pattern-detection-rule" target="_blank">Auto-populate a Log Pattern Detection Rule</a> or <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#manually-create-a-log-pattern-detection-rule" target="_blank">Manually create a Log Pattern Detection Rule</a>.
+  
+  #### Log Change Detection Rules
+  Log change detection rules will notify you when a condition changes, such as HTTP 500 errors in your web access logs. They are based on calculations that you apply to **logs** or **log sets**.
+
+For setup instructions, see <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#auto-populate-a-log-change-detection-rule" target="_blank">Auto-populate a log Change Detection Rule</a> or <a href="https://docs.Company.com/Product/create-and-manage-basic-detection-rules#manually-configure-a-log-change-detection-rule" target="_blank">Manually configure a Log Change Detection Rule</a>.
+
+</details>
+
+<details><summary>Customize your dashboards</summary>
+
+  Product's dashboards are customizable to ensure your views of your environment meet your needs. While it's easier to customize a dashboard template, you can also create a new one from scratch. Although dashboard customization is up to you, we'd like to share some key elements to explore while building your dashboards.
+
+  #### Edit the cards
+  After adding a card to your dashboard, click the gear icon in the top right corner of a card and select **Edit**.
+
+  1. **Name Card** : Change the card's name and description to provide more clarity from the dashboard view.
+  2. **Select Data Source** : 
+     - Use a previously saved query and customize the **Full Query** to show the data you want to highlight.
+     - Change the time range for the data shown in the card.
+     - Change the log set the card's data is referencing.
+  3. **Configure Chart** : Add a caption, add data labels, change the scale, and change the colors of your card
+     - **Captions** are a free text form to provide additional context of the card's data from the dashboard view. 
+     - **Colors** are best for differentiating between multiple groups in one card. Try editing the colors of a Stacked Bar chart!
+  4. **Switch Charts** : You can choose the best way to visualize your card's data from the charts listed in the **Switch Charts** section. Product will only make the charts available that can correctly display your data. 
+
+  [block:callout]
+  {
+  "type": "info",
+  "body": "By clicking the filter icon in the top menu of your dashboard, you can add a query to filter all of your dashboard's data. Check out our [documentation](build-a-query) for help building a query.",
+  "title": "Apply a LEQL query to an entire dashboard"
+  }
+  [/block]
+
+  #### Choosing the right chart for your data
+  To determine the best chart to display your data, here are some example use cases for each format.
+
+  - For examining **trends** or **activity over time**, use an _Area_, _Line_, _Stacked Area_, or _Stacked Bar_ chart. 
+  - For **comparisons across different categories**, use a _Bar_ or _Bar Horizontal_ chart.
+  - For understanding **top trends** and **groups**, use a _Packed Bubble_, _Word Cloud_, or _Pie_ chart.
+  - For a quick glance at a **single data point**, use a _Number_ chart.
+  - For visualizing **cyclical data** in **relation to time**, use a _Radial_ chart. 
+  - For an easy-to-scan view of **individual data points** across categories, use a _Table_ chart. 
+
+  #### Size your dashboard cards
+  Changing the size of your cards on your dashboard helps highlight certain data views you will use often, or grabs other users' attention when viewing your dashboard for the first time.
+
+  To adjust a card's size, click and drag the bottom-right corner.
+
+  #### How to create and save a new custom dashboard
+
+  1. From the left menu, click **Dashboards and Reports**.
+  2. From the dashboard list, click the **New Dashboard** button. The New Dashboard modal appears.
+  3. Enter a Dashboard Name and Description. The Description is optional, but it helps differentiate all of the dashboards at your organization.
+  4. Click the **Create Dashboard** button.
+
+  Now that you’ve saved your new dashboard, it’s available in the dashboard list. To add data visualization cards to your dashboard, you’ve been directed to the Card Library. You can find, add, and customize cards for your dashboard. If you can’t find a card you want in the Card Library, build your own in the Card Builder.
+
+  See <a href="https://docs.Company.com/Product/dashboards-and-reports#add-cards-to-your-dashboard" target="_blank">Dashboard Cards</a> to learn how to customize your cards. 
+
+</details>
+
+<details><summary>Get started with automation</summary>
+
+  Automation can greatly improve the efficiency of your team by tackling security issues as they emerge in your environment. Automatically containing threats, quickly notifying your team of suspicious activity, and tracking the progress of an investigation are just three of the ways that automation can help to streamline your security processes. 
+
+  To take advantage of automation, you must install the Insight Orchestrator and configure automation connections. Once the Orchestrator is set up, you can explore our out-of-the-box workflow templates and use automation to enrich your investigations.
+
+#### Automation core concepts
+
+  Review these automation core concepts to understand how to successfully apply automation across your detection, investigation, and response tasks.
+
+  * **Orchestrator**: The Insight Orchestrator is an on-premise technological component that aids connection between your environment and the cloud.
+  * **Connections**: Connections enable two-way communication between Product and third-party products, solutions, and tools. They are comprised of 2 parts: **Plugins** are the third-party integration sources with defined automation triggers and actions, while **credentials** are the sensitive secrets that enable authentication into a third-party source.
+  * **Workflows**: Workflows are automated processes designed to quickly work through key tasks across detection, investigation, and response. They can be completely automated, or have human decision steps along the way so a member of your team can provide necessary context when it's needed most. Workflows can also be simple one-off actions, or a complex tree of orchestrated steps.
+  * **Triggers**: Instead of requiring manual action, Triggers will automatically initiate a workflow in response to a security event. Triggers are currently available for legacy detection rules only.
+
+#### How to set up automation
+
+<details><summary>Step 1: Install and Activate the Insight Orchestrator</summary>
+
+ The Insight Orchestrator is a component installed on your network that gives Product the access it needs to automate security processes. You must have an orchestrator if you want to take advantage of the Automation features available in Product.
+
+  1. From the Product left menu, click Data Collection. 
+  2. Click the Orchestrators tab, click Install Orchestrator, and follow the on-screen prompts. 
+  InsightConnect uses plugins to give you access to a wide variety of capabilities, from data manipulation to response actions. The Insight Orchestrator uses Docker containers to run individual plugins.
+
+  [block:callout]
+  {
+  "type": "warning",
+  "body": "The Orchestrator uses Docker containers to run individual plugins. While you may log into the Orchestrator to view and manage these Docker containers, it is not necessary and is not advisable unless you have been directed to do so by the Company support team.",
+  "title": "Docker container management"
+  }
+  [/block]
+
+  </details>
+  
+  <details><summary>Step 2: Configure automation connections</summary>
+  Product includes several out-of-the-box Workflow Templates built for third-party tools that you can leverage for your security needs. In order to use these templates, you’ll need to set up Automation Connections. A connection comprises the credentials and required parameters, such as the application URL, that Product needs to access and authenticate to a third-party tool.
+
+#### Task 1: Find Connection Requirements
+  
+Product currently supports automation for the following third-party integrations:
+
+* Active Directory
+* Cb Response
+* JIRA
+* Okta
+* ServiceNow
+
+To review their connection requirements, see <a href="https://docs.Company.com/Product/configure-connections" target="_blank">Configure Connections for Automation</a>.
+
+[block:callout]
+  {
+  "type": "info",
+  "body": " 
+  * In the [Extension Library](https://extensions.Company.com/), search to find the plugin you want to connect, and click the Documentation tab. The Setup section shows the parameters required to configure a plugin connection.
+  * In InsightConnect, navigate to **Setting**s > **Plugins & Tools**, select the desired plugin, and click the **Help** tab. The Setup section shows the parameters required to configure a plugin connection.",
+  "title": "You can also view Connection requirements from the Extension Library or InsightConnect"
+  }
+  [/block]
+
+#### Task 2: Create a Connection
+After you gather information for your connections, you can configure the connections for your workflows. For instructions, see <a href="https://docs.Company.com/Product/configure-connections" target="_blank">Configure Connections</a>.
+
+  [block:callout]
+  {
+  "type": "info",
+  * From InsightConnect's home page, navigate to **Settings** > **Plugins & Tools** > **Connections**, click **Add Connection**, and select the desired plugin from the *Plugins list*.
+  * From the workflow builder, add an action step, select the desired plugin, select an action, and click **Add a New Connection** in the *Choose a Connection* step.
+",
+  "title": "You can also create Connections requirements in InsightConnect"
+  }
+  [/block]
+
+#### Task 3: Create a Credential
+    
+  Most connections require a credential for use. Credential types include API keys, username/password pairs, and other sensitive information that is encrypted at rest and in transit. Credentials are saved separately from connections so that they may be reused across multiple connections as needed. Credentials used in your connections are encrypted on the Orchestrator itself. For more information about credential security, see <a href="https://docs.Company.com/insightconnect/orchestrator/#orchestrator-security" target="_blank">Orchestrator Security</a>.
+
+  1. Click on the **Choose a Credential** input in the connection configuration menu and select **Create New Credential**. 
+  2. Enter a display name for your credential, then enter the credential itself. 
+  3. Click **Save** and proceed with your connection configuration.
+
+  For more information on editing credentials and using existing connections, see <a href="https://docs.Company.com/insightconnect/create-a-connection" target="_blank">InsightConnect Create a Connection</a>. 
+
+  </details>
+
+  <details><summary>Step 3: Create a workflow from a template</summary>
+
+Workflows are available for you to kick off when there is something in your investigation that requires you to take action.
+You can use out-of-the-box workflow templates to set up Workflows that do things like quarantine an asset, suspend a user account from within an investigation, and create JIRA tickets. These Workflows are based on Workflow Templates. These templates are workflows that do not have configured connections and are handy when you need to reuse Workflow steps with different connections. 
+
+#### Create your first workflow 
+After you’ve installed an Orchestrator, we recommend starting with the **Open Source Alert Enrichment workflow** to contextualize your investigations and alerts.
+  1. Open the Investigation where you’d like to add automation and click **Take Action**.
+  2. Click **Enrichment Workflows** from the _Select an Action_ category.
+  3. Click **Enrich Alert Data with Open Source Plugins** from the _Select and Automation Action to Take_ dropdown.
+  4. Follow the instructions to name your workflow, select connections, and configure details.
+  5. Click **Take Action** to launch your workflow.
+
+To configure other workflow templates, see <a href="https://docs.Company.com/Product/activate-workflow-templates" target="_blank">Automation Workflow Templates</a>.
+  </details>
+
+  <details><summary>Step 4: Use a workflow in an investigation</summary>
+
+  To begin using automation workflows to streamline your investigations, try an **<a href="https://docs.Company.com/Product/automated-enrichment-workflows" target="_blank">Automated Enrichment Workflow</a>**. Product offers built-in enrichment workflow templates that you can configure. 
+
+  These workflows can process and enrich the following input data types:
+  * Asset
+  * Domain
+  * IP Address
+  * Process
+  * URL
+  * User
+
+  Most enrichment workflow templates are capable of processing four or more of these data types from the same investigation, but Product does not require all data types to be present in order for the workflow to run. As long as any enrichment workflow has viable input to process, it will return enriched content for your security teams to use. 
+
+  Enrichment workflows rely on several third party and open source plugins to process your investigation data; ensure you have installed and activated an Insight Orchestrator.
+
+  </details>
+
+</details>
+
+<details><summary>Enable File Integrity Monitoring (FIM)</summary>
+
+  File Integrity Monitoring (FIM) allows you to audit changes to critical files and folders for compliance reasons on Windows systems running agent version 2.5.3.8 or later.
+
+  When you turn on FIM, the Insight Agent starts collecting FIM events. Product can then attribute users to file modification activity. You can create alerts based on certain file log events to notify you when one of your users modifies a critical file or folder.
+
+ #### How to configure FIM
+  * Review the <a href="https://docs.Company.com/Product/file-integrity-monitoring#windows-requirements" target="_blank">Windows</a> or <a href="https://docs.Company.com/Product/fim-for-linux" target="_blank">Linux</a> requirements.
+  * <a href="https://docs.Company.com/Product/file-integrity-monitoring#turn-it-on-in-Product" target="_blank">Turn on FIM</a> in Product.
+  * Follow the configuration steps for a <a href="https://docs.Company.com/Product/file-integrity-monitoring#configure-fim-in-your-assets-in-windows" target="_blank">Windows</a> or <a href="https://docs.Company.com/Product/fim-for-linux#configure-auditd-compatibility-mode" target="_blank">Linux</a> environment.
+
+</details>
+
+<details><summary>Deploy the Network Sensor</summary>
+
+ During your first 45 days, you deployed Insight Agents and Collectors to monitor your assets for vulnerabilities and user behavior. While these components are responsible for collecting data on your assets, they do not account for network traffic, which is the data moving between your assets. To provide the network traffic visibility that you need for **network traffic analysis (NTA)**, Company offers the <a href="https://docs.Company.com/sensor/" target="_blank">Insight Network Sensor</a> with multiple deployment options.
+
+  The Insight Network Sensor allows you to monitor, capture, and assess the end-to-end network traffic moving throughout your physical and virtual environment. Product can then leverage this network sensor data for network traffic analysis and IDS (Intrusion Detection System) detection rules.
+
+  #### Network Sensor deployment options
+
+  There are 3 options for deploying the network sensor. All options offer network traffic visibility, but are deployed and configured differently.
+
+  * The Insight Network Sensor deployed on a physical server
+  * The Insight Network Sensor deployed on a virtual machine
+  * The Insight Network Sensor for AWS, which is deployed on an EC2 instance
+  
+  To deploy an Insight Network Sensor, see the <a href="https://docs.Company.com/sensor/insight-network-sensor-deployment-guide" target="_blank">Insight Network Sensor Deployment Guide</a>.
+
+</details>
+
+<details><summary>How IDS detection rules work</summary>
+
+  Intrusion Detection System (IDS) is an application that monitors for malicious activity and policy violations on your network. When configuring this event source in Product, the IDS data is attributed to the user and asset details page and allows you to search through the data. However, it does not produce alerts.
+
+  Product can collect events from these types of IDS/IPS devices:
+
+  * Cisco FirePower
+  * Corero IPS
+  * Dell iSensor
+  * F5 Networks BIG-IP Local Traffic Manager
+  * HP TippingPoint
+  * Juniper Junos
+  * McAfee IDS
+  * Metaflows IDS
+  * Security Onion
+  * Sentinel IPS
+  * Snort IDS
+  * Network Sensor
+
+  To collect IDS/IPS events, you need to configure the device to send syslog to the Collector.  For a detailed list of the rules used to identify suspicious activity, see <a href="https://docs.Company.com/Product/suspicious-network-activity" target="_blank">IDS detection rules powered by the Insight Network Sensor</a>. 
+
+</details>
+
+[block:callout]
+{
+  "type": "info",
+  "body": "
+  - [Plan your Insight Network Sensor deployment](https://academy.Company.com/Company-Product-1/1227362/scorm/3jadcvdcwk4s2?reg=1)
+  - [Insight Network Sensor deployment demonstration](https://academy.Company.com/Company-Product-1/1227446?reg=1)",
+  "title": "Additional resources"
+}
+[/block]
+
+
+## Day 90+: Continue your Product Exploration and Education
+Discovering new aspects of Product doesn't stop after your first 90 days! Company has workshops, monthly product updates, and in-product messages to keep you informed about new features and the value you can gain from them.
+
+<details><summary>The Company Academy</summary>
+
+  <a href="https://academy.Company.com/" target="_blank">The Company Academy</a> holds trainings, webcasts, workshops, and more, all led by our Company experts.
+  - <a href="https://academy.Company.com/page/Company-academy" target="_blank">On-demand training</a> helps you get started with Company products, answer frequently asked questions, and recommend best practices. 
+  - <a href="https://academy.Company.com/page/webinars" target="_blank">Company Webcasts</a> are hosted by Company's product teams and provide a forum where customers can learn about best practices as well as what’s new in their Company products.
+  - <a href="https://academy.Company.com/page/Companyilt" target="_blank">Virtual Instuctor-Led Training Courses</a> are live training sessions broken down by product and available for enrollment.
+  - <a href="https://academy.Company.com/page/Company-certified-professional" target="_blank">Certification Exams</a> are product-specific exams to help you demonstrate your knowledge of using Company's solutions as a cybersecurity professional.
+  - <a href="https://academy.Company.com/page/product-workshops" target="_blank">Product Workshops</a> are Company's free trainings on all things, all products, and average about an hour long.
+  
+</details>
+
+<details><summary>Communications</summary>
+
+  To make sure you receive the Company communications that best suit your needs, set your <a href="https://information.Company.com/communication-preferences.html" target="_blank">communication preferences</a>. 
+
+  - Whether it's an emergent cybersecurity threat, a product update, or a notice of service degradation for maintenance, we'll alert you with an in-product message to ensure you're aware of all that affects your environment.
+  - <a href="https://www.Company.com/research/" target="_blank">Company's research</a> provides information on a variety of topics, such as, cloud misconfigurations, vulnerability management, detection and response, application security, and more.
+  - <a href="https://www.Company.com/blog/" target="_blank">Company's blog</a> offers  conversational guidance and information from our security experts.
+  - Product's <a href="https://docs.Company.com/release-notes/Product/" target="_blank">Release Notes</a> and in-product What's New guides are published at the end of each month to notify you of the product updates, improvements, and bug fixes that have occurred during the month.
+
+</details>
+
+<details><summary>Our Communities</summary>
+
+  Company supports a range of open-source projects. Consider joining one of our Open-Source communities!
+
+  - <a href="https://attackerkb.com/?utm_source=marketo&utm_medium=email&utm_campaign=dec21-onboarding-touch3" target="_blank">AttackerKB</a> captures, highlights, and expands on security researcher knowledge to shed light on the specific conditions and characteristics that make a vulnerability exploitable and useful to attackers.
+  - <a href="https://docs.velociraptor.app/" target="_blank">Velociraptor</a> provides you with the ability to more effectively respond to a wide range of digital forensic and cyber incident response investigations and data breaches.
+  - <a href="https://www.metasploit.com/" target="_blank">Metasploit</a> empowers and arms defenders to stay one step ahead of the game by verifying vulnerabilities, managing security assessments, and improving security awareness.
+  - <a href="https://github.com/Company/recog" target="_blank">Recog</a> is a framework for identifying products, services, operating systems, and hardware by matching fingerprints against data returned from various network probes.
+
+  Our customer advocacy program, <a href="https://www.Company.com/about/Company-voice/" target="_blank">Company Voice</a>, provides you with a network of customers, offers the chance to deepen your security expertise, and provides the opportunity to share input on future product developments. 
+
+</details>
+
+<details><summary>Company Support</summary>
+
+When you run into any problems with Product, first search our <a href="https://docs.Company.com/" target="_blank">help site</a> for potential solutions. If you need additional assistance, please contact Company Support through the <a href="https://www.Company.com/for-customers/" target="_blank">customer portal</a>.
+
+</details>
