@@ -111,6 +111,9 @@ blah
 
 ## expandable content testing
 
+<summary>test dropdown</summary>
+<details>this is the expandable body text</details>
+
 ## code snippet testing
 
 
