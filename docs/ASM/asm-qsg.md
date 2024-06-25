@@ -119,6 +119,11 @@ blah
 
 
 
+```## expandable content testing## expandable heading 2&#x20;testing blah blah blahblah blah [test link](https://docs.rapid7.com/insightidr/configure-the-insight-agent-to-send-logs/)# expandable heading 1test## code snippet testingsmall update - testing the experienceadding to the snippet after adding the snippet to the welcome topicheyyyyy hiiiii helloooo therehow are things:::hint{type="info"}
+**test**
+
+test
+:::![](https://archbee-image-uploads.s3.amazonaws.com/x-S9gkIA8olpyprsqa11G/2tHeDxmgFiNz5MlE_SgDP_screenshot-2024-06-17-at-85541-am.png)![](https://archbee-image-uploads.s3.amazonaws.com/x-S9gkIA8olpyprsqa11G/eSwUJkgCuPEVrmIYrXEhl_screenshot-2024-06-18-at-14434-pm.png)
 
 
 
